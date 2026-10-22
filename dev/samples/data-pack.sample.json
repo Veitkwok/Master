@@ -4,7 +4,9 @@
   "routine": "primary_babybus",
   "mode": "routine",
   "market_session": "closed",
-  "tickers": ["NVDA"],
+  "tickers": [
+    "NVDA"
+  ],
   "connectors": {
     "ibkr": "live",
     "x": "live",
@@ -17,15 +19,30 @@
   "gaps": [],
   "positions": {
     "ibkr": [
-      {"symbol": "NVDA", "qty": 12, "avg_cost": 171.2, "market_price": 182.4, "market_value": 2188.8}
+      {
+        "symbol": "NVDA",
+        "qty": 12,
+        "avg_cost": 171.2,
+        "market_price": 182.4,
+        "market_value": 2188.8
+      }
     ],
     "schwab": []
   },
   "watchlists": {
-    "Favorites": ["NVDA"],
-    "ETFs": ["SMH"],
-    "ASSETS": ["SGOV", "GLD"],
-    "Nasdaq-QQQ": ["QQQ"],
+    "Favorites": [
+      "NVDA"
+    ],
+    "ETFs": [
+      "SMH"
+    ],
+    "ASSETS": [
+      "SGOV",
+      "GLD"
+    ],
+    "Nasdaq-QQQ": [
+      "QQQ"
+    ],
     "Candidates": []
   },
   "symbols": {
@@ -33,7 +50,10 @@
       "symbol": "NVDA",
       "security_type": "STK",
       "contract_id": 123456789,
-      "asof": {"quote": "2026-10-22T20:00:00Z", "fetched": "2026-10-23T07:31:00+08:00"},
+      "asof": {
+        "quote": "2026-10-22T20:00:00Z",
+        "fetched": "2026-10-23T07:31:00+08:00"
+      },
       "quote": {
         "last": 182.4,
         "prior_close": 180.1,
@@ -45,10 +65,20 @@
         "w52_low": 90.0,
         "adv_90d_usd": 25000000000
       },
-      "ohlcv": {"daily_count": 90, "derived": {"ma20": 178.2, "ma50": 172.6, "ma200": 150.1, "rsi14": 58}},
+      "ohlcv": {
+        "daily_count": 90,
+        "derived": {
+          "ma20": 178.2,
+          "ma50": 172.6,
+          "ma200": 150.1,
+          "rsi14": 58
+        }
+      },
       "fundamentals_web": {
         "source_url": "https://example.com/nvda-10q",
-        "filing_refs": ["10-Q 2026-09-30"],
+        "filing_refs": [
+          "10-Q 2026-09-30"
+        ],
         "asof": "2026-09-30",
         "revenue_ttm": 130000000000,
         "fcf_ttm": 60000000000,
@@ -57,9 +87,41 @@
         "shares_diluted": 24500000000,
         "net_debt": -30000000000,
         "growth_notes": "3y rev CAGR 38%",
-        "peers": ["AMD", "AVGO", "MRVL"]
+        "peers": [
+          {
+            "symbol": "AMD",
+            "asof": "2026-10-22",
+            "source_url": "https://example.com/amd",
+            "multiples": {
+              "pe": 45.2,
+              "ev_sales": 8.1,
+              "ev_ebitda": 30.5
+            }
+          },
+          {
+            "symbol": "AVGO",
+            "asof": "2026-10-22",
+            "source_url": "https://example.com/avgo",
+            "multiples": {
+              "pe": 38.0,
+              "ev_sales": 12.4
+            }
+          },
+          {
+            "symbol": "MRVL",
+            "asof": "2026-10-22",
+            "source_url": "https://example.com/mrvl",
+            "multiples": {
+              "pe": 32.5,
+              "ev_sales": 9.8
+            }
+          }
+        ]
       },
-      "catalysts_web": {"next_earnings": "2026-11-19", "events": []},
+      "catalysts_web": {
+        "next_earnings": "2026-11-19",
+        "events": []
+      },
       "social_x": {
         "posts": [
           {
@@ -67,7 +129,9 @@
             "url": "https://x.com/example/status/1",
             "posted_at": "2026-10-21T13:05:00Z",
             "text": "下季数据中心订单可见度提升，guide 可能上修",
-            "symbols": ["NVDA"],
+            "symbols": [
+              "NVDA"
+            ],
             "conviction_hint": "high",
             "paid_or_promo": false
           }
@@ -75,7 +139,10 @@
         "mentions_14d": 1,
         "accounts_14d": 1
       },
-      "risk_flags": {"trap_evidence": [], "name_bucket": "mega_cap"},
+      "risk_flags": {
+        "trap_evidence": [],
+        "name_bucket": "mega_cap"
+      },
       "gaps": []
     }
   }

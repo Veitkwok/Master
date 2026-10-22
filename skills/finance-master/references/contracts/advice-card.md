@@ -58,6 +58,7 @@ risk:
   chains: "IBKR+WEB"
   key_risks: ["客户集中度"]
   overlap: ["已持 QQQ，科技暴露叠加"]
+  concentration: "top2 AI capex 93% | null"   # 持仓复核用；≥80% 必须标注
 data_gaps: []
 analysis_source: deepseek | bot-inline | mixed
 order_sent: false

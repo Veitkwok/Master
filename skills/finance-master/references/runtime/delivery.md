@@ -18,7 +18,8 @@
 
 ```text
 📅 2026-10-23 · primary_babybus · 07:32 +08
-数据: IBKR✅ X✅(1 read) Hindsight✅ Schwab skip DeepSeek✅
+运行: succeeded · partial（原因：Hindsight 不可用 / 3 票估值 blocked）
+数据: IBKR✅ X✅(1 read) Hindsight❌ Schwab skip DeepSeek✅(cache 29k hit)
 结果: 3 只候选 → 2 张卡 + 1 只观察
 
 ## NVDA · 买入（新买）
@@ -36,6 +37,9 @@ Candidate 提议: NVDA 14日3次/2账号/high → 回复确认后写入
 未下单 · 未写观察列表（Candidate 待你确认）
 ```
 
+- `运行:` 行必须写 run 状态（succeeded/partial/failed）+ partial 原因（Hindsight/估值/
+  Web 缺失/审批），不要只写"成功"。
+- 目标价 null 的卡要写明缺什么（例：`缺 peers 倍数 → 可比法 blocked`）。
 字段顺序固定，方便一眼扫完。
 
 ---

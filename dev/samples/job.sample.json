@@ -94,9 +94,34 @@
           "net_debt": -30000000000,
           "growth_notes": "3y rev CAGR 38%",
           "peers": [
-            "AMD",
-            "AVGO",
-            "MRVL"
+            {
+              "symbol": "AMD",
+              "asof": "2026-10-22",
+              "source_url": "https://example.com/amd",
+              "multiples": {
+                "pe": 45.2,
+                "ev_sales": 8.1,
+                "ev_ebitda": 30.5
+              }
+            },
+            {
+              "symbol": "AVGO",
+              "asof": "2026-10-22",
+              "source_url": "https://example.com/avgo",
+              "multiples": {
+                "pe": 38.0,
+                "ev_sales": 12.4
+              }
+            },
+            {
+              "symbol": "MRVL",
+              "asof": "2026-10-22",
+              "source_url": "https://example.com/mrvl",
+              "multiples": {
+                "pe": 32.5,
+                "ev_sales": 9.8
+              }
+            }
           ]
         },
         "catalysts_web": {

@@ -78,6 +78,21 @@
 watchlist 实测名：`Favorites`、`ETFs`、`Assets`、`Nasdaq-QQQ`、`Candidate`
 （匹配时大小写不敏感、单复数兼容）。
 
+### 5.1 实测工具名（2026-10-23，Bot 运行记录）
+
+| 能力 | 实际工具 |
+|------|----------|
+| IBKR 行情 | `get_price_snapshot`、`get_price_history` |
+| IBKR 账户 | `get_account_positions` |
+| IBKR watchlist | `get_watchlists`（列表）、`get_watchlist`（单表） |
+| X 读取 | `search_posts_all`（支持 `from:`）、`get_users_posts` |
+| Schwab | `finance_list_portfolio_holdings`（Plaid 只读） |
+| Web | `tavily_search` |
+
+这些只是当前 Bot 的映射示例；代码/契约仍按能力调用，工具名变化时以探测为准。
+Hindsight 探测：最多重试 2 次（间隔 ~2s）；仍失败就记 `hindsight: down`，
+继续本轮并在摘要标注——**不阻断**。
+
 ## 6. 已知不稳定项
 
 - **IBKR**：用户已确认当前正常；若 OAuth 失效 → `ibkr: down`，不出买卖卡。

@@ -114,17 +114,26 @@ Master/
 | 现象 | 处理 |
 |------|------|
 | routine 没有产物 | 看 Bot 聊天里的失败摘要；检查 X / IBKR 连接 |
-| 卡上目标价缺失 | 数据包缺财务输入（fundamentals）；本轮只能观望，下轮补 |
-| 全是"观望" | 检查是否 IBKR/X/DeepSeek 全挂；检查 confidence 是否被 ceiling 压到 C |
+| 卡上目标价缺失 | 数据包缺财务输入或 peers 倍数；本轮只能观望，下轮按缺口补（看卡上的 gaps） |
+| 全是"观望" | 检查是否 IBKR/X/DeepSeek 全挂；检查 target 是否因缺 fundamentals/peers 被 blocked；检查 confidence 是否被 ceiling 压到 C |
 | DeepSeek 未被调用 | 密钥缺失 → bot-inline；审批拦截 → 该 run 失败、下轮补（不是脚本异常），见 approvals.md 与 routine-setup §2 |
 | IBKR 读不到 | 重新授权连接器；期间只出观察/持仓列表 |
-| Hindsight 掉线 | 正常，跳过记忆继续 |
+| Hindsight 掉线 | 正常，跳过记忆继续（探测重试 2 次后仍失败就标 partial） |
 | 技能不出现 | 重跑 install.sh；或让 routine 直接读 `/workspace/master/skills/finance-master/SKILL.md` |
 
 ---
 
+### 更新（Bot 上）
+
+```bash
+cd /workspace/master && git pull && bash install.sh
+```
+
+发布仓库已改为 fast-forward 推送；若早期版本曾 force-push，首次更新用
+`git fetch && git reset --hard origin/main` 对齐一次，之后正常 `git pull`。
+
 ## 7. 版本
 
-- pack `1.0.0`（见 `VERSION`）
+- pack `1.0.5`（见 `VERSION`）
 - engine `4.6.8`（Sherlock 原版；方法核冻结）
 - 变更记录：`CHANGELOG.md`

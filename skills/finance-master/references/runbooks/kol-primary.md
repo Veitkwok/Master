@@ -36,8 +36,11 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
 2. 取前 **≤3** 只进入分析（用户点名优先）；其余写"观察"（代码 + 原句）。
 3. 对每只分析票，按 `contracts/data-pack.md` 组包：
    - IBKR：resolve 合约 → 现价/快照 → 60–90 日线（MA/RSI）→ 四张 watchlist（只读）；
-   - Web：**必须** ≤2 次（财务 / 催化剂）；ETF 加发行商页。没有 `fundamentals_web`，
-     worker 的 DCF/可比必然 blocked → 目标价 null，本轮只能观望；
+   - Web：**必须** 2–3 次：①最新财务/事件；②**≥3 家 peers 的估值倍数**
+     （PE / EV-Sales / EV-EBITDA 至少一种，带来源与 asof）；③ETF 加发行商页
+     （NAV/折溢价/费率/持仓）。
+     - 没有 `fundamentals_web` 或 peers → DCF/可比 blocked → 目标价 null，只能观望；
+     - 不能用"感觉贵/便宜"凑目标价，不能编倍数。
    - X：本轮该账号帖子（≤8 条，含链接）；
    - Hindsight：按 ticker recall；
    - positions：IBKR 全量 + Schwab（若可用）。
@@ -72,7 +75,8 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
 
 1. 写 `state/runs/YYYY-MM-DD.json`（追加本 run）、`state/advice/YYYY-MM.jsonl`（每卡一行）、
    `state/watchlists/YYYY-MM-DD.json`（快照）。
-2. Candidate：满足 `contracts/accounts.md` 阈值 → 写 `state/pending_candidates.json` 并**提议**；
+2. Candidate：满足 `contracts/accounts.md` 阈值、且该票 `position_context=neither`
+   （不提议已持仓）→ 写 `state/pending_candidates.json` 并**提议**；
    异常：列表不存在 → 只提示，不创建。
 3. 写 `out/YYYY-MM-DD-<routine>.md`、`out/cards/YYYY-MM-DD/<SYM>.md`。
 4. 按 `runtime/delivery.md` 输出聊天摘要（含"未下单"页脚）。

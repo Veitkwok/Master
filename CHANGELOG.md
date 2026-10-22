@@ -1,5 +1,18 @@
 # CHANGELOG · Master pack
 
+## 1.0.5 — 2026-10-23（第一轮真实 routine 反馈）
+
+- 发布脚本改为 **fast-forward**：先 clone 远端、rsync、commit、push；Bot 以后 `git pull`
+  即可，不再需要 `reset --hard`。
+- 目标价链路增强：`fundamentals_web.peers` 改为结构化（≥3 家、倍数、来源、asof）；
+  每票 Web 必须查"财务 + peers 倍数"；DCF 不可用时走可比法，peers 缺失才 null。
+- 失效规则拆分：新买入用入场止损；**已持有**用结构位 + 论据 + 确认窗口，不追溯套用
+  15% 止损（深亏仓不拿"回本"当理由）。
+- 持仓复核新增**集中度**检查（top-2 同主题 ≥80% 必须标注）。
+- Candidate 提议排除已持仓票（`position_context=neither` 才提议）。
+- 记录实测连接器工具名（IBKR / X / Schwab / Tavily），Hindsight 探测重试 2 次后不阻断。
+- 摘要新增 `运行:` 行，partial 必须写原因（Hindsight/估值/Web 缺失）。
+
 ## 1.0.4 — 2026-10-23（首次 Bot 实测反馈）
 
 - 修复：`out/current.result.json` 现在写入 `analysis_source: "deepseek"`（之前只在 stdout）。

@@ -5,24 +5,30 @@
 
 ---
 
-## 1. 失效条件（invalidation）两种
+## 1. 失效条件（按仓位类型分开）
 
-1. **论据失效（thesis falsifier）**：来自 `CHALLENGE_NODES[].what_would_falsify`，
-   必须可观测 + 有窗口（例："下季指引下调"、"连续 3 日收盘低于 50 日线"、
-   "大客户订单取消公告"）。
-2. **价格失效（price stop）**：按下面规则给一个数字：
+### 1.1 新买入 / 加仓（BUY / ADD 卡）
 
 ```text
 candidates = []
-若本轮 pack 提供 MA50 且 MA50 < last：
-    candidates.append(MA50 × 0.99)
-candidates.append(entry_limit × (1 − max_loss_pct))     # max_loss_pct 默认 15%
-invalidation_price = round(max(candidates), 2)           # 取更紧的一档（更高）
-若 invalidation_price ≥ last：不给买入（已经跌破失效区）
+若本轮 pack 提供 MA50 且 MA50 < last：candidates.append(MA50 × 0.99)
+candidates.append(entry_limit × (1 − 15%))        # 入场风险预算
+invalidation_price = round(max(candidates), 2)    # 取更紧（更高）的一档
+若 invalidation_price ≥ last：不给买入
 ```
 
-- 没有 MA50 时只用 15% 价格止损；有更好结构位时写入 `basis_note`。
-- 失效价与论据失效**必须都给**（价格触发快速止损，论据触发逻辑退出）。
+- 必须同时给：`invalidation_price` + `invalidation_thesis`（来自 CN 的可观测条件）。
+- 触发任一 → 清仓（新仓）。
+
+### 1.2 已持有（HOLD / TRIM / SELL 卡）
+
+- **价格失效**：优先结构位（MA50 / MA200 / 前低 / 关键整数位），并写确认窗口：
+  「连续 3 个交易日收盘低于 X」或「放量（≥1.5×20 日均量）收穿 X」。
+- **论据失效**：趋势或基本面事件（指引下调、股息削减、订单取消、融资断裂等）。
+- **不追溯套用新买入的 15% 入场止损**；长期持仓默认用结构 + 论据，除非用户显式
+  配置 `max_drawdown_stop`（默认关闭）。深亏仓尤其不能用"回本"当持有理由。
+- 没有目标价时，`sell_plan` 可以没有 ladder，但必须有
+  `invalidation_price` + `invalidation_thesis` + `review_by`。
 
 ---
 
@@ -38,6 +44,14 @@ invalidation_price = round(max(candidates), 2)           # 取更紧的一档（
 
 - 用户偏好简单模式时：可改成"到 target.base 全出 + 失效全出"；默认用阶梯。
 - 分批比例、止损百分比写在 pack `config`（默认 1/3、1/3、15%），不在卡上即兴发挥。
+- 没有 target 时不编阶梯，只写"失效触发即全出"。
+
+### 2.1 集中度（持仓复核必查）
+
+- 计算 top-2 同主题/同因子（如 AI 开支、半导体、能源）占持仓市值比例；
+- ≥80%，或单一持仓 ≥50% → 在摘要与 `risk.key_risks` 标注「集中度风险」；
+- 不因此自动改变 stance，但要在卡上提示"可讨论减仓/对冲/提高现金"。
+- 不用记忆里的旧持仓；以本轮 IBKR + Schwab 为准。
 
 ---
 

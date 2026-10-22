@@ -65,7 +65,25 @@ NVDA:
     shares_diluted: 24500000000
     net_debt: -30000000000
     growth_notes: "3y rev CAGR 38%"
-    peers: [AMD, AVGO, MRVL]        # ≥3 才启用 comps
+    peers:                          # ≥3 家才启用可比法（没有就 blocked）
+      - symbol: AMD
+        asof: "2026-10-22"
+        source_url: "https://..."
+        multiples: {pe: 45.2, ev_sales: 8.1, ev_ebitda: 30.5}   # 至少一种
+      - symbol: AVGO
+        asof: "2026-10-22"
+        source_url: "..."
+        multiples: {pe: 38.0, ev_sales: 12.4}
+      - symbol: MRVL
+        asof: "2026-10-22"
+        source_url: "..."
+        multiples: {pe: 32.5, ev_sales: 9.8}
+  etf_issuer:                       # 仅 ETF；目标价/费率依据
+    source_url: "https://..."
+    nav: 12.34
+    premium_pct: 0.4
+    expense_ratio: 0.0059
+    holdings_asof: "2026-10-21"
   catalysts_web:
     next_earnings: "2026-11-19"
     events: [{date: "2026-12-02", what: "GTC", source: "..."}]
@@ -117,7 +135,9 @@ watchlists:
 
 1. **IBKR**：resolve 合约 → 现价/快照 → 历史日线（60–90 日）→ 持仓 → 四张 watchlist。
 2. **X**：按 `contracts/accounts.md` 读取；只保留最新 8 条/账号。
-3. **Web**：每票 ≤2 次查询（财务/催化剂各一次）；ETF 另加发行商页（费率/持仓/分红）。
+3. **Web**：每票 2–3 次查询：①财务/催化剂；②≥3 家 peers 的估值倍数（带来源/asof）；
+   ETF 另加发行商页（NAV/折溢价/费率/持仓）。只查到财务、没查到 peers → 可比法 blocked，
+   目标价 null；这是允许的结果，但不能编倍数。
 4. **Schwab**：持仓与交易（只读）；缺失即 skip。
 5. **Hindsight**：按 ticker recall（见 `contracts/memory.md`）。
 

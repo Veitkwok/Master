@@ -193,8 +193,17 @@ def check_skill(skill: Path, errors: list[str], warnings: list[str]) -> None:
             if not any(c.exists() for c in candidates):
                 bucket = warnings if "engine" in rel.parts else errors
                 bucket.append(f"{tag}broken path in {rel}: `{token}`")
+        allow_tool_names = (
+            {"get_price_snapshot", "get_price_history", "get_account_positions",
+             "get_account_balances", "get_account_trades", "get_watchlists",
+             "get_watchlist", "search_posts_all", "get_users_posts",
+             "finance_list_portfolio_holdings", "tavily_search"}
+            if str(rel) == "references/runtime/capabilities.md" else set()
+        )
         for line in text.splitlines():
             for word in BANNED:
+                if word in allow_tool_names:
+                    continue
                 if word in line and not NEGATION.search(line):
                     errors.append(f"{tag}banned token '{word}' in {rel}: {line.strip()[:120]}")
 
