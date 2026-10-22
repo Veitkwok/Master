@@ -1,0 +1,15 @@
+{
+  "SKILL.md": "7e8133df06ca2768f450a9fe7303b3e915a4010eff94fee13ba80b9d185ec5f3",
+  "references/contracts/confidence.md": "61e757fc68ad5ca0130ce2f716b28d70514d3559586af2d8e40fecf8436050f2",
+  "references/engine/sherlock/GUIDE.md": "38e37822677a5fcf31d30f145161fb18ce17e60b6086a1977965cf4c3378e856",
+  "references/engine/sherlock/references/full-engine.md": "e026e166f411689a3aab49217aaf1e584c3a1496611b844de39524debceb8040",
+  "references/engine/sherlock/references/l2-confidence-contract.md": "766fc7a55b2e6df7ac502738c8d352b50f455b5b65fb0af32a18f97c1556f0f8",
+  "references/engine/sherlock/references/confidence-examples.md": "377d15924338eb71482305b06e95c4d4525e5904d5cb5d2ec048082eb8c2212e",
+  "references/engine/sherlock/references/method-library/INDEX.md": "b61a8bbf9320af8dc19b384a2afe968b51e84f4c2b08710112087f0b0bf89854",
+  "references/engine/modules/company-valuation/GUIDE.md": "40146aec71d4bfb6ab9d1f75629b6d37e9d8ff1fe80b298d19235921041e1d93",
+  "references/engine/modules/company-valuation/references/dcf.md": "48e87f9569aedbe58a2ebcd865e10d3fd981c41195b97a07ef3180ff5b8094c1",
+  "references/engine/modules/company-valuation/references/relative_valuation.md": "682974823168ba741672fdb237da5ac7e9278bb05551c9564f57e1b1bc0e197e",
+  "references/engine/modules/trap-detector/GUIDE.md": "43eb2085db4d97a2b765b002e6dd0ef8288cf1ea7ea231240b601bb663d49a0b",
+  "references/engine/modules/trap-detector/references/eight-signals.md": "c5e6b3e7bc559263d5894901fd32d6d7d56a9ab13cbb08d7c7932a35f3613e2f",
+  "references/engine/docs/reference/priced-in-checklist.md": "6a61c61b94a0f4f829d12d3f1524bf4dc7a011d7a2b67ca6ecb6abf7ddc91a73"
+}

@@ -1,0 +1,16 @@
+# runtime state / outputs (bot computer)
+state/
+out/
+packs/
+
+# python
+__pycache__/
+*.pyc
+
+# local secrets
+.secrets/
+.env
+*.key
+
+# OS
+.DS_Store

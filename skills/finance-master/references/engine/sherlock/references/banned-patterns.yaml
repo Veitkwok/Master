@@ -1,0 +1,116 @@
+# Banned / obsolete patterns (former _quarantine).
+# Home: sherlock/references/ (2026-08-15; finance-master-auditor removed).
+
+version: 1
+product_ecosystem: "4.6.8+"
+market_scope: US_EQUITIES_ONLY
+
+# Skills that must never remain in live finance-master
+banned_skill_names:
+  - lhb-analyzer
+  - yfinance-data
+  - funda-data
+  - twitter-reader
+  - discord-reader
+  - telegram-reader
+  - linkedin-reader
+  - tradingview-reader
+  - opencli-reader
+  - generative-ui
+  - skill-creator
+  - hyperliquid-reader
+  - yc-reader
+
+# Former quarantine buckets (reference only — directory deleted)
+former_quarantine_buckets:
+  - lhb-analyzer/                    # A-share 龙虎榜 / 游资
+  - investor-panel-groups/group-e-china-value.md
+  - investor-panel-groups/group-f-china-youzi.md
+  - investor-panel-groups/quotes-a-share-youzi.md
+  - finance-skills/yfinance-data/
+  - finance-skills/funda-data/
+  - finance-skills/*-reader/         # hermes opencli readers
+  - legacy-yfinance-refs/
+  - serenity-examples/a-share-*
+  - deep-analysis-legacy-refs/       # task2.5, old dim scoring, multi-market fin-methods
+
+# Content signatures — if reintroduced by upstream sync, strip or NOTIFY
+banned_content_signatures:
+  data_stacks:
+    - yfinance
+    - "import yfinance"
+    - "from yfinance"
+    - "yf.Ticker"
+    - "yf.screen"
+    - longbridge
+    - mcp_longbridge_
+    - funda-data
+    - funda.ai
+    - akshare
+    - opencli-reader
+    - fetch_financials
+    - fetch_kline
+    - fetch_capital_flow
+  china_microstructure:
+    - lhb-analyzer
+    - 龙虎榜
+    - 游资席位
+    - group-e-china-value
+    - group-f-china-youzi
+    - 涨停打板
+  non_product_execution:
+    - IBKR 草稿委托(禁止自动调用)
+    - IBKR 删除草稿(禁止自动调用)
+    - IBKR 读取草稿(禁止自动调用)
+  script_era:
+    - run.py
+    - requirements.txt
+    - "personas/"
+    - assemble_report
+    - render_share
+    - render_war
+    - plugin.json
+
+# Live deep-analysis must NOT reintroduce these reference files
+banned_deep_reference_files:
+  - task2.5-qualitative-deep-dive.md
+  - task2-dimension-scoring.md
+  - task3-agent-evaluation.md
+  - fin-methods/rebalance.md
+  - fin-methods/returns-attribution.md
+  - fin-methods/model-update.md
+  - fin-methods/earnings-preview.md   # use L2 finance-skills/earnings-preview instead
+
+# Allowed live deep fin-methods only
+allowed_deep_fin_methods:
+  - ai-readiness.md
+  - serenity-bottleneck.md
+
+# Upstream sync strategy defaults (auditor)
+sync_policy:
+  deep-analysis: NOTIFY          # local full rewrite
+  investor-panel: NOTIFY
+  trap-detector: NOTIFY
+  serenity-skill: NOTIFY
+  finance-skills_default: PATCH  # strip plugin.json; re-apply IBKR/yfinance fences
+  banned_skills: SKIP_BANNED
+  lhb-analyzer: SKIP_BANNED
+
+# Orders stay forbidden. Position reads are required by the skill entry's data-pack contract.
+ibkr_forbidden_tools:
+  - IBKR 草稿委托(禁止自动调用)
+  - IBKR 删除草稿(禁止自动调用)
+  - IBKR 读取草稿(禁止自动调用)
+
+ibkr_allowed_tools:
+  - IBKR 持仓读取
+  - IBKR 账户余额读取
+  - IBKR 成交读取
+  - IBKR 合约解析
+  - IBKR 现价快照
+  - IBKR 历史K线
+  - IBKR 期权参数
+  - IBKR 期权链
+  - IBKR 主题
+  - IBKR 关联
+  - IBKR 期货搜索

@@ -1,0 +1,82 @@
+{
+  "pack_version": 2,
+  "asof": "2026-10-23T07:32:00+08:00",
+  "routine": "primary_babybus",
+  "mode": "routine",
+  "market_session": "closed",
+  "tickers": ["NVDA"],
+  "connectors": {
+    "ibkr": "live",
+    "x": "live",
+    "schwab": "skip",
+    "hindsight": "live",
+    "web": "live",
+    "state": "ok"
+  },
+  "source_error": [],
+  "gaps": [],
+  "positions": {
+    "ibkr": [
+      {"symbol": "NVDA", "qty": 12, "avg_cost": 171.2, "market_price": 182.4, "market_value": 2188.8}
+    ],
+    "schwab": []
+  },
+  "watchlists": {
+    "Favorites": ["NVDA"],
+    "ETFs": ["SMH"],
+    "ASSETS": ["SGOV", "GLD"],
+    "Nasdaq-QQQ": ["QQQ"],
+    "Candidates": []
+  },
+  "symbols": {
+    "NVDA": {
+      "symbol": "NVDA",
+      "security_type": "STK",
+      "contract_id": 123456789,
+      "asof": {"quote": "2026-10-22T20:00:00Z", "fetched": "2026-10-23T07:31:00+08:00"},
+      "quote": {
+        "last": 182.4,
+        "prior_close": 180.1,
+        "change_pct": 1.28,
+        "volume": 210000000,
+        "bid": 182.35,
+        "ask": 182.45,
+        "w52_high": 195.0,
+        "w52_low": 90.0,
+        "adv_90d_usd": 25000000000
+      },
+      "ohlcv": {"daily_count": 90, "derived": {"ma20": 178.2, "ma50": 172.6, "ma200": 150.1, "rsi14": 58}},
+      "fundamentals_web": {
+        "source_url": "https://example.com/nvda-10q",
+        "filing_refs": ["10-Q 2026-09-30"],
+        "asof": "2026-09-30",
+        "revenue_ttm": 130000000000,
+        "fcf_ttm": 60000000000,
+        "fcf_margin": 0.46,
+        "eps_ttm": 4.12,
+        "shares_diluted": 24500000000,
+        "net_debt": -30000000000,
+        "growth_notes": "3y rev CAGR 38%",
+        "peers": ["AMD", "AVGO", "MRVL"]
+      },
+      "catalysts_web": {"next_earnings": "2026-11-19", "events": []},
+      "social_x": {
+        "posts": [
+          {
+            "handle": "BabybusFL",
+            "url": "https://x.com/example/status/1",
+            "posted_at": "2026-10-21T13:05:00Z",
+            "text": "下季数据中心订单可见度提升，guide 可能上修",
+            "symbols": ["NVDA"],
+            "conviction_hint": "high",
+            "paid_or_promo": false
+          }
+        ],
+        "mentions_14d": 1,
+        "accounts_14d": 1
+      },
+      "risk_flags": {"trap_evidence": [], "name_bucket": "mega_cap"},
+      "gaps": []
+    }
+  }
+}

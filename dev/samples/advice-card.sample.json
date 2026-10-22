@@ -1,0 +1,63 @@
+{
+  "card_version": 1,
+  "asof": "2026-10-23T07:34:00+08:00",
+  "price_asof": "2026-10-22 close ET / IBKR",
+  "routine": "primary_babybus",
+  "symbol": "NVDA",
+  "name": "NVIDIA Corp",
+  "asset": "stock",
+  "source": "primary",
+  "thesis": "AI 数据中心订单可见度提升，下季指引有上修空间",
+  "kol_evidence": [
+    {
+      "handle": "BabybusFL",
+      "url": "https://x.com/example/status/1",
+      "posted_at": "2026-10-21T13:05:00Z",
+      "line": "下季数据中心订单可见度提升，guide 可能上修"
+    }
+  ],
+  "stance": "BUY",
+  "action_cn": "买入",
+  "last": 182.4,
+  "entry_limit": 186.0,
+  "target": {
+    "base": 224.0,
+    "low": 205.0,
+    "high": 243.0,
+    "basis": "dcf_blend",
+    "horizon": "6-12m"
+  },
+  "upside_pct": 22.8,
+  "sell_plan": {
+    "ladder": [
+      {"at": 224.0, "fraction": "1/3"},
+      {"at": 243.0, "fraction": "1/3"}
+    ],
+    "remainder_rule": "剩余 1/3 用失效条件 + 下次复核守护",
+    "invalidation_price": 158.0,
+    "invalidation_thesis": "下季指引下调 / 连续 3 日收盘 < 50 日线",
+    "review_by": "2027-02-20"
+  },
+  "position": {
+    "context": "ibkr",
+    "qty": 12,
+    "avg_cost": 171.2,
+    "market_value": 2188.8,
+    "unrealized_pct": 6.5,
+    "cash_note": "用户未说现金 → 不写金额"
+  },
+  "risk": {
+    "trap_level": "green",
+    "priced_in": "partial",
+    "confidence": "B",
+    "limiting": [],
+    "chains": "IBKR+WEB",
+    "key_risks": ["客户集中度", "10Y 上行 50bp → DCF -8%"],
+    "overlap": ["已持 QQQ，科技暴露叠加"]
+  },
+  "data_gaps": [],
+  "analysis_source": "deepseek",
+  "order_sent": false,
+  "schwab_trade": "forbidden",
+  "draft_created": false
+}
