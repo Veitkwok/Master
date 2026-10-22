@@ -1,5 +1,12 @@
 # CHANGELOG · Master pack
 
+## 1.0.6 — 2026-10-23
+
+- 新增 `references/runtime/config.md`：买入/加仓阈值、失效策略、trap/priced_in 闸门、
+  每轮预算、Candidate 阈值、DeepSeek 模型/thinking 集中一处。
+- 记录 Owner 决定：**现有持仓不设成本止损、继续持有**；仓库保持 PUBLIC。
+- SKILL 加载地图增加 config.md 指针。
+
 ## 1.0.5 — 2026-10-23（第一轮真实 routine 反馈）
 
 - 发布脚本改为 **fast-forward**：先 clone 远端、rsync、commit、push；Bot 以后 `git pull`

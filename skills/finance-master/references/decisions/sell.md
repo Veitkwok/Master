@@ -27,6 +27,7 @@ invalidation_price = round(max(candidates), 2)    # 取更紧（更高）的一�
 - **论据失效**：趋势或基本面事件（指引下调、股息削减、订单取消、融资断裂等）。
 - **不追溯套用新买入的 15% 入场止损**；长期持仓默认用结构 + 论据，除非用户显式
   配置 `max_drawdown_stop`（默认关闭）。深亏仓尤其不能用"回本"当持有理由。
+  **Owner 决定（2026-10-23）：现有持仓不止损，继续持有**（配置见 `runtime/config.md`）。
 - 没有目标价时，`sell_plan` 可以没有 ladder，但必须有
   `invalidation_price` + `invalidation_thesis` + `review_by`。
 

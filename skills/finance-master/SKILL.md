@@ -202,6 +202,7 @@ DeepSeek 负责耗 token 的分析与计算；两边都不越界。
 | 查"是否已定价" | `references/engine/docs/reference/priced-in-checklist.md` |
 | 记忆操作 | `contracts/memory.md` |
 | 状态操作 | `runtime/state.md` |
+| 调阈值 / 看当前配置 | `runtime/config.md` |
 | 输出交付 | `runtime/delivery.md` |
 
 规则：同一文件一轮只读一次；不读 `README/evals/examples/assets`；
