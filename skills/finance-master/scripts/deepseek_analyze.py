@@ -274,7 +274,7 @@ def compute_comps(pack: dict) -> dict:
             cap = "B"
             if ratio > 3:
                 quality, cap = "wide", "B"
-            if width > 1.0 or ratio > 10 or (upside is not None and abs(upside) > 2.0):
+            if width > 1.0 or ratio > 10 or (upside is not None and abs(upside) > 0.5):
                 quality, cap = "very_wide", "C"
             # a target more than 5x (or less than 0.2x) the live price is not usable
             if last0 and (base / last0 > 5 or base / last0 < 0.2):

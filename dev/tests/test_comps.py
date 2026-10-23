@@ -75,16 +75,25 @@ CASES.append(("CRWV chooses plausible lens", c5 is not None
 # note: with last=20 in the helper, EV/Sales base is also implausible; the point is
 # the lens choice and quality downgrade, not the exact base.
 
-# 6) gate: negative fcf, no comps route -> incomplete
+# 6) far target: base 12 vs last 30 (-60%) -> very_wide / C
+p6 = pack("NBIS", {"security_type": "STK", "quote": {"last": 30.0}, "fundamentals_web": {
+    "shares_diluted": 100, "net_debt": 0, "revenue_ttm": 100,
+    "peers": [peer("A", ev_sales=10), peer("B", ev_sales=12), peer("C", ev_sales=14)]}})
+c6 = worker.compute_comps(p6).get("NBIS")
+CASES.append(("far target -> very_wide", c6 is not None
+              and c6["base"] == 12.0 and c6["quality"] == "very_wide"
+              and c6["confidence_cap"] == "C"))
+
+# 7) gate: negative fcf, no comps route -> incomplete
 p5 = pack("N", stock(shares_diluted=100, net_debt=0, revenue_ttm=10, fcf_ttm=-5))
 missing = worker.check_valuation_inputs(p5)
 CASES.append(("gate rejects negative-fcf-only", len(missing) == 1
               and any("<=0" in f for f in missing[0]["fields"])))
 
 # 6) gate: negative fcf + comps route -> ok
-p7 = pack("N", stock(shares_diluted=100, net_debt=0, revenue_ttm=100, fcf_ttm=-5,
+p8 = pack("N", stock(shares_diluted=100, net_debt=0, revenue_ttm=100, fcf_ttm=-5,
                       peers=[peer("A", ev_sales=2), peer("B", ev_sales=3), peer("C", ev_sales=4)]))
-CASES.append(("gate allows comps route", worker.check_valuation_inputs(p7) == []))
+CASES.append(("gate allows comps route", worker.check_valuation_inputs(p8) == []))
 
 
 def main() -> int:

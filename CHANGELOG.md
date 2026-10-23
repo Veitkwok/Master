@@ -1,5 +1,11 @@
 # CHANGELOG · Master pack
 
+## 1.0.12 — 2026-10-23（NBIS 远目标降级）
+
+- `computed_comps`：**|upside| > 50%** 一律降为 `very_wide`（cap C），不再给 `ok/B`
+  （NBIS 类 target 见价的 26%、但没到 insufficient 0.2× 下限的情况）。
+- config/target 合约同步；`dev/tests/test_comps.py` 增远目标案例（7 例）。
+
 ## 1.0.11 — 2026-10-23（CRWV 荒谬 target + 字段噪音）
 
 - `computed_comps` 质量规则修正：同业 max/min >**10** 或 |upside| >200% → very_wide（C）；

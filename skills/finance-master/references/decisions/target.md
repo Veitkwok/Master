@@ -75,7 +75,7 @@ Bot 收口顺序：
 | 条件 | quality | cap |
 |------|---------|-----|
 | 同业 max/min ≤3，且区间宽度 ≤100%，且 \|upside\| ≤200% | `ok` | B |
-| 同业 max/min >3，或宽度 >100%，或 \|upside\| >200% | `very_wide` | C |
+| 同业 max/min >3，或宽度 >100%，或 \|upside\| >50% | `very_wide` | C |
 | 同业 max/min >**10** | `very_wide` | C |
 | base > 5×现价 或 base < 0.2×现价 | `insufficient` | C（不可用） |
 
