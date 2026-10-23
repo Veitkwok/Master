@@ -191,11 +191,12 @@ def _peer_values(peers, key: str) -> list[float]:
 
 
 def _has_dcf_route(fw: dict) -> bool:
+    fcf = fw.get("fcf_ttm")
     return (
-        _num(fw.get("fcf_ttm"))
+        _num(fcf) and fcf > 0
         and _num(fw.get("shares_diluted")) and fw.get("shares_diluted", 0) > 0
         and _num(fw.get("net_debt"))
-        and _num(fw.get("revenue_ttm"))
+        and _num(fw.get("revenue_ttm")) and fw.get("revenue_ttm", 0) > 0
     )
 
 
@@ -209,6 +210,96 @@ def _comp_routes(fw: dict) -> list[str]:
     if _num(fw.get("ebitda_ttm")) and len(_peer_values(peers, "ev_ebitda")) >= 3:
         routes.append("ev_ebitda")
     return routes
+
+
+def _pct(values: list[float], q: float) -> float:
+    vals = sorted(values)
+    if not vals:
+        return 0.0
+    if len(vals) == 1:
+        return float(vals[0])
+    pos = (len(vals) - 1) * q
+    lo, hi = int(pos), min(int(pos) + 1, len(vals) - 1)
+    frac = pos - lo
+    return float(vals[lo] * (1 - frac) + vals[hi] * frac)
+
+
+def compute_comps(pack: dict) -> dict:
+    """Deterministic comps fallback computed from the pack (not the model).
+
+    Used when the worker refuses/omits comps_range. Values are traceable:
+    every implied price comes from peer multiples + the target's own metric.
+    """
+    out: dict = {}
+    for sym, t in _tickers_map(pack).items():
+        if not isinstance(t, dict) or str(t.get("security_type", "")).upper() == "ETF":
+            continue
+        fw = t.get("fundamentals_web") or {}
+        quote = t.get("quote") or {}
+        last = quote.get("last", t.get("last"))
+        shares = fw.get("shares_diluted")
+        net_debt = fw.get("net_debt")
+        peers = fw.get("peers") if isinstance(fw.get("peers"), list) else []
+        lenses = []
+
+        def try_lens(name: str, metric, key: str, mode: str) -> None:
+            if not _num(metric) or metric == 0:
+                return
+            mults = _peer_values(peers, key)
+            used = [p.get("symbol") for p in peers
+                    if isinstance(p, dict) and _num((p.get("multiples") or {}).get(key))]
+            if len(mults) < 3:
+                return
+            med = _pct(mults, 0.5)
+            if mode == "pe":
+                base = med * metric
+            else:  # EV-based multiples
+                if not (_num(shares) and shares > 0) or not _num(net_debt):
+                    return
+                ev = med * metric
+                base = (ev - net_debt) / shares
+            if not _num(base) or base <= 0:
+                return
+            low_mult, high_mult = _pct(mults, 0.25), _pct(mults, 0.75)
+            if mode == "pe":
+                low, high = low_mult * metric, high_mult * metric
+            else:
+                low = ((low_mult * metric) - net_debt) / shares
+                high = ((high_mult * metric) - net_debt) / shares
+            ratio = (max(mults) / min(mults)) if min(mults) > 0 else 999
+            width = ((high - low) / base) if base > 0 else 999
+            quality = "ok"
+            cap = "B"
+            if ratio > 3:
+                quality, cap = "wide", "B"
+            if width > 1.0:
+                quality, cap = "very_wide", "C"
+            lenses.append({
+                "lens": name,
+                "metric": key,
+                "base": round(base, 2),
+                "low": round(low, 2),
+                "high": round(high, 2),
+                "peers_used": used,
+                "peers_count": len(mults),
+                "median_multiple": round(med, 4),
+                "dispersion_ratio": round(ratio, 2),
+                "width_ratio": round(width, 3),
+                "quality": quality,
+                "confidence_cap": cap,
+            })
+
+        try_lens("pe", fw.get("eps_ttm"), "pe", "pe")
+        try_lens("ev_sales", fw.get("revenue_ttm"), "ev_sales", "ev")
+        try_lens("ev_ebitda", fw.get("ebitda_ttm"), "ev_ebitda", "ev")
+        if lenses:
+            rank = {"ok": 0, "wide": 1, "very_wide": 2}
+            lenses.sort(key=lambda x: (rank[x["quality"]], abs(x["width_ratio"])))
+            best = dict(lenses[0])
+            if _num(last) and last > 0:
+                best["upside_pct"] = round((best["base"] / last - 1) * 100, 1)
+            out[sym] = best
+    return out
 
 
 def check_valuation_inputs(pack: dict) -> list[dict]:
@@ -242,8 +333,11 @@ def check_valuation_inputs(pack: dict) -> list[dict]:
             dcf = _has_dcf_route(fw)
             routes = _comp_routes(fw)
             if not dcf and not routes:
-                if not _num(fw.get("fcf_ttm")):
+                fcfv = fw.get("fcf_ttm")
+                if not _num(fcfv):
                     fields.append("fundamentals_web.fcf_ttm(DCF)")
+                elif fcfv <= 0:
+                    fields.append("fundamentals_web.fcf_ttm(DCF, <=0)")
                 if not _num(fw.get("shares_diluted")) or fw.get("shares_diluted", 0) <= 0:
                     fields.append("fundamentals_web.shares_diluted")
                 if not _num(fw.get("net_debt")):
@@ -410,8 +504,28 @@ def run_analysis(job: dict, key: str) -> int:
         result = parse_json(content)
     except (ValueError, json.JSONDecodeError):
         return 4
+    # canonical field name: symbol (normalize worker output; warn on ticker)
+    normalized = []
+    for t in result.get("tickers", []):
+        if not isinstance(t, dict):
+            continue
+        if "symbol" not in t and t.get("ticker"):
+            t["symbol"] = t["ticker"]
+            normalized.append(str(t["symbol"]))
+        t.pop("ticker", None)
+    if normalized and "warnings" not in result:
+        result["warnings"] = []
+    if normalized:
+        result.setdefault("warnings", []).append(
+            f"normalized ticker->symbol for {', '.join(normalized)}")
     if validate(result):
         return 4
+
+    computed = compute_comps(pack)
+    for t in result.get("tickers", []):
+        sym = t.get("symbol")
+        if sym in computed:
+            t["computed_comps"] = computed[sym]
 
     used_thinking = "disabled" if isinstance(body.get("thinking"), dict) and \
         body["thinking"].get("type") == "disabled" else "enabled"
@@ -477,10 +591,12 @@ def run_analysis(job: dict, key: str) -> int:
                 "invalidation_candidates": t.get("invalidation_candidates", []),
                 "key_risks": t.get("key_risks", []),
                 "fields_gap": t.get("fields_gap", []),
+                "computed_comps": t.get("computed_comps"),
             }
             for t in result.get("tickers", [])
         ],
         "errors": result.get("errors", []),
+        "warnings": result.get("warnings", []),
         "usage": result["usage"],
         "cache": result["cache"],
         "result_path": result["result_path"],

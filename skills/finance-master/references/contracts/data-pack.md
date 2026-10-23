@@ -87,6 +87,11 @@ NVDA:
     premium_pct: 0.4
     expense_ratio: 0.0059
     holdings_asof: "2026-10-21"
+  valuation_params:                 # 可选：用于 DCF；没有就用引擎默认
+    wacc: 0.0944
+    rf: 0.041
+    erp: 0.05
+    terminal_g: 0.025
   catalysts_web:
     next_earnings: "2026-11-19"
     events: [{date: "2026-12-02", what: "GTC", source: "..."}]
@@ -119,7 +124,7 @@ Bot 写完 job 后先跑固定命令；脚本在**调用 DeepSeek 之前**校验
 
 判定标准是"**至少一条估值路线完整**"（不是字段拼盘）：
 
-- **DCF 路线**：`fcf_ttm` + `shares_diluted` + `net_debt` + `revenue_ttm` 都有；
+- **DCF 路线**：`fcf_ttm` **> 0** + `shares_diluted` + `net_debt` + `revenue_ttm` 都有；
 - **可比路线**：目标指标 + **≥3 家带对应倍数的 peers**
   （`eps_ttm` ↔ `pe`；`revenue_ttm` ↔ `ev_sales`；`ebitda_ttm` ↔ `ev_ebitda`）。
 
@@ -165,6 +170,8 @@ watchlists:
    目标价 null；这是允许的结果，但不能编倍数。
 4. **Schwab**：持仓与交易（只读）；缺失即 skip。
 5. **Hindsight**：按 ticker recall（见 `contracts/memory.md`）。
+
+**holdings 模式没有 `social_x`**（不读 X）：不要把它当缺口，也不要在 fields_gap 里要求。
 
 失败处理：连接器级失败写 `source_error`；字段级缺失写 `gaps`；**不允许用记忆、
 旧数据包或网页行情冒充 IBKR 现价**。

@@ -8,6 +8,7 @@
 | `validate_card.py` | 校验一张建议卡 JSON 是否满足决策红线 |
 | `tests/test_cards.py` | 建议卡金样/反例（12 例） |
 | `tests/test_jobcheck.py` | 估值输入闸门（exit 8）测试 |
+| `tests/test_comps.py` | 确定性可比回退（computed_comps）测试 |
 | `samples/` | 数据包 / job / 建议卡样例（可跑 validate_card） |
 | `research/deepseek-integration.md` | DeepSeek 接入方案与实测清单 |
 | `publish-to-github.sh` | 从 monorepo 发布本包到 GitHub 分发仓库 |
@@ -20,6 +21,7 @@
 python3 dev/check_pack.py
 python3 dev/tests/test_cards.py
 python3 dev/tests/test_jobcheck.py
+python3 dev/tests/test_comps.py
 python3 dev/validate_card.py dev/samples/advice-card.sample.json
 python3 skills/finance-master/scripts/deepseek_analyze.py --selftest
 ```

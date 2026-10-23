@@ -53,6 +53,27 @@ asof/source: 本轮数据包时点与来源
   不得据此买入（stance 只能 WATCH/HOLD）。
 - 负 FCF / 无 DCF 时**必须尝试可比法**；只有"匹配倍数不够 3 家"才允许 target=null。
 
+### 2.2 脚本确定性可比回退（`computed_comps`）
+
+worker 仍不给 `comps_range` 时，worker 脚本会**自己**按本文件规则、用数据包里的 peers
+算一份确定性的 `computed_comps`（写在 stdout/result 每票下）：
+
+```text
+computed_comps: {lens, base, low, high, peers_used, peers_count,
+                 median_multiple, dispersion_ratio, width_ratio,
+                 quality: ok|wide|very_wide|insufficient,
+                 confidence_cap: B|C, upside_pct}
+```
+
+Bot 收口顺序：
+1. worker 的 `valuation.dcf_fair/comps_range` 有效 → 用它；
+2. 否则用 `computed_comps`（basis 写 `comps(script)`，并在卡上注明脚本计算）；
+3. 都没有 → target null。
+
+`computed_comps.quality` 的 cap 必须执行：`ok`/`wide` → 置信度 ≤B；`very_wide` → ≤C；
+`insufficient` → 不能用作 target。`very_wide` 可以把 target 显示在卡上（供你参考），
+但**不得据此买入**；也**不得仅因 target 触发减仓/卖出**（见 stance.md）。
+
 ---
 
 ## 3. 时间尺度与复核

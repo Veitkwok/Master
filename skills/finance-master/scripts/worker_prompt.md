@@ -26,6 +26,13 @@
   与目标指标匹配的 peer 倍数（eps↔pe / revenue↔ev_sales / ebitda↔ev_ebitda），
   取中位数与分位区间。只有"匹配倍数不足 3 家"时才允许 target=null。
 - 同业分散不构成 blocked：给 median + 区间；在 limiting 里写 `wide_comps`。
+- 数据包若已给 `wacc`（或 `rf`/`erp`）就直接用；只有这些都没有时才用引擎默认
+  （rf≈10Y UST、ERP 4.5–5.5%、税 21%、terminal g 2–2.5%）。**不要因为没有
+  「WACC 来源页」就把估值标 blocked**；来源缺失写进 limiting 即可。
+- holdings 模式没有 `social_x`（本包就不采 X）；不要把 `social_x.posts` 写进
+  `fields_gap`，也不要求它。
+- 算 median 前先核对口径：EPS × PE 应≈现价；只有 1 家 peer 时不得称「中位数」，
+  写 `single_peer`。
 - ETF 没有 FCF：用 `etf_issuer` 的 NAV/折溢价/费率与产品口径；缺 NAV → target null。
 - **你没有任何记忆或外部知识**：禁止使用训练数据里的公司财务数字；每个数字必须能在
   job 里找到对应字段，找不到就 `null` + `fields_gap`。

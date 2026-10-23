@@ -47,6 +47,8 @@ valuation_routes: [dcf, comps]        # 至少一条完整
 comps_lenses: ["eps_ttm+pe", "revenue_ttm+ev_sales", "ebitda_ttm+ev_ebitda"]
 comps_min_peers_per_lens: 3
 comps_wide_threshold: 3               # max/min > 3 -> wide_comps（降置信度，不 blocked）
+comps_very_wide_width: 1.0            # (high-low)/base > 1.0 -> very_wide（C，不得买入/卖出）
+target_quality_gate: B                # 触发 BUY/TRIM/SELL 的 target 最低质量
 
 # Candidate
 candidate_min_mentions: 2

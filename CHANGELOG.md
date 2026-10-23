@@ -1,5 +1,17 @@
 # CHANGELOG · Master pack
 
+## 1.0.10 — 2026-10-23（目标价重测：worker 不肯出 comps）
+
+- 闸门修正：DCF 路线要求 `fcf_ttm > 0`（负 FCF 不再冒充 DCF 路线）。
+- 新增**脚本确定性可比回退** `computed_comps`：worker 拒绝/漏掉 comps_range 时，
+  脚本按 `decisions/target.md` §2.1 用 peers + 目标指标算 median/分位，附
+  quality（ok/wide/very_wide/insufficient）与 confidence_cap。
+- target 质量闸门：`very_wide`/`insufficient` 只能展示，不得据此 BUY 或仅因到价 TRIM/SELL。
+- worker prompt：有 WACC 就用（没有也不 blocked）、holdings 不要求 social_x、
+  单家 peer 不得称 median、EPS×PE 自检。
+- 字段统一：脚本把 worker 的 `ticker` 归一为 `symbol` 并记 warning。
+- 新增 `dev/tests/test_comps.py`（6 例）。
+
 ## 1.0.9 — 2026-10-23（5 条 routine 全量测试反馈）
 
 - 估值闸门升级为"**路线级**"：DCF 路线（fcf+shares+net_debt+revenue）或可比路线
