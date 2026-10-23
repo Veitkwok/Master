@@ -30,6 +30,7 @@ Environment overrides (optional):
 Exit codes (the Bot acts on these):
     0 ok | 2 config/auth | 3 network | 4 invalid JSON output |
     5 output truncated | 6 rate-limited/5xx after retries | 7 timeout
+    8 valuation inputs incomplete (Bot should collect more, rewrite job, rerun)
 """
 
 from __future__ import annotations
@@ -160,6 +161,67 @@ def compact(obj: object) -> str:
     return json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _tickers_map(pack: dict) -> dict:
+    if isinstance(pack.get("symbols"), dict):
+        return pack["symbols"]
+    if isinstance(pack.get("tickers"), dict):
+        return pack["tickers"]
+    if isinstance(pack.get("tickers"), list):
+        out = {}
+        for sym in pack["tickers"]:
+            if isinstance(sym, str):
+                out[sym] = (pack.get("symbols") or {}).get(sym, {})
+        return out
+    return {}
+
+
+def _num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def check_valuation_inputs(pack: dict) -> list[dict]:
+    """Return [{ticker, fields:[...]}] for tickers missing minimum valuation inputs."""
+    missing = []
+    for sym, t in _tickers_map(pack).items():
+        if not isinstance(t, dict):
+            missing.append({"ticker": sym, "fields": ["<ticker data not an object>"]})
+            continue
+        fields = []
+        quote = t.get("quote") or {}
+        if not _num(quote.get("last")) and not _num(t.get("last")):
+            fields.append("quote.last")
+        fw = t.get("fundamentals_web") or {}
+        if not isinstance(fw, dict):
+            fields.append("fundamentals_web")
+            fw = {}
+        is_etf = str(t.get("security_type", "")).upper() == "ETF"
+        if is_etf:
+            issuer = fw.get("etf_issuer") or t.get("etf_issuer") or {}
+            if not _num(issuer.get("nav")):
+                fields.append("fundamentals_web.etf_issuer.nav")
+        else:
+            if not _num(fw.get("shares_diluted")) or fw.get("shares_diluted", 0) <= 0:
+                fields.append("fundamentals_web.shares_diluted")
+            if not _num(fw.get("net_debt")):
+                fields.append("fundamentals_web.net_debt")
+            if not any(_num(fw.get(k)) for k in ("eps_ttm", "revenue_ttm", "ebitda_ttm")):
+                fields.append("fundamentals_web.{eps_ttm|revenue_ttm|ebitda_ttm}")
+            peers = fw.get("peers")
+            if not isinstance(peers, list) or len(peers) < 3:
+                fields.append("fundamentals_web.peers(>=3)")
+            else:
+                for i, peer in enumerate(peers, 1):
+                    if not isinstance(peer, dict):
+                        fields.append(f"fundamentals_web.peers[{i}].multiples")
+                        continue
+                    mult = peer.get("multiples") or {}
+                    if not any(_num(mult.get(k)) for k in ("pe", "fwd_pe", "ev_sales", "ev_ebitda")):
+                        fields.append(f"fundamentals_web.peers[{i}].multiples")
+        if fields:
+            missing.append({"ticker": sym, "fields": fields})
+    return missing
+
+
 # ---------------------------------------------------------------------------
 # API
 # ---------------------------------------------------------------------------
@@ -258,6 +320,18 @@ def validate(obj: object) -> list[str]:
 # ---------------------------------------------------------------------------
 def run_analysis(job: dict, key: str) -> int:
     mode = job_mode(job)
+    pack = job_payload(job)
+    missing = check_valuation_inputs(pack)
+    if missing and not job.get("allow_incomplete"):
+        sys.stdout.write(json.dumps({
+            "schema": "master.deepseek.jobcheck/v1",
+            "status": "incomplete",
+            "message": "valuation inputs missing: fix the job (Web collect) and rerun; "
+                       "set allow_incomplete=true only after retry budget is spent",
+            "missing": missing,
+        }, ensure_ascii=False) + "\n")
+        print("jobcheck: incomplete -> exit 8 (no API call)", file=sys.stderr)
+        return 8
     thinking = os.environ.get("DEEPSEEK_THINKING") or ("off" if mode == "routine" else "on")
     system, system_sha = build_system(mode)
     timeout = int(os.environ.get("DEEPSEEK_TIMEOUT", "240"))
@@ -423,7 +497,21 @@ def main() -> int:
     ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--ping", action="store_true", help="with --selftest: tiny real request")
     ap.add_argument("--dump-system", action="store_true")
+    ap.add_argument("--check-job", action="store_true",
+                    help="only validate valuation inputs of the job (exit 8 if incomplete)")
     args = ap.parse_args()
+
+    if args.check_job:
+        try:
+            job = load_job(args.pack)
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"job error: {exc}", file=sys.stderr)
+            return 2
+        missing = check_valuation_inputs(job_payload(job))
+        print(json.dumps({"schema": "master.deepseek.jobcheck/v1",
+                          "status": "incomplete" if missing else "ok",
+                          "missing": missing}, ensure_ascii=False, indent=2))
+        return 8 if missing else 0
 
     if args.selftest:
         return selftest(args.ping)

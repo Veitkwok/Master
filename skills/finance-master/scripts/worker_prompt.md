@@ -27,6 +27,8 @@
   （如「连续 3 日收盘低于」/「放量收穿」）；不要套用新买入的 15% 入场止损。
 - 每票 `fields_gap` 用点路径（例：`peers.multiples`, `fundamentals_web.fcf_ttm`），
   方便 Bot 决定下一轮补什么。
+- 如果 job 带 `allow_incomplete: true`（Bot 已尝试补采仍缺）：按现有数据做 best effort，
+  `valuation.status` 标 partial/blocked，`fields_gap` 写清缺什么，**不要编数字**。
 
 ## 输出 JSON 形状（严格遵守）
 

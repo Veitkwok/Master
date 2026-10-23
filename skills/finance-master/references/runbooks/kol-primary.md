@@ -36,10 +36,14 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
 2. 取前 **≤3** 只进入分析（用户点名优先）；其余写"观察"（代码 + 原句）。
 3. 对每只分析票，按 `contracts/data-pack.md` 组包：
    - IBKR：resolve 合约 → 现价/快照 → 60–90 日线（MA/RSI）→ 四张 watchlist（只读）；
-   - Web：**必须** 2–3 次：①最新财务/事件；②**≥3 家 peers 的估值倍数**
-     （PE / EV-Sales / EV-EBITDA 至少一种，带来源与 asof）；③ETF 加发行商页
-     （NAV/折溢价/费率/持仓）。
-     - 没有 `fundamentals_web` 或 peers → DCF/可比 blocked → 目标价 null，只能观望；
+   - 先读 `state/peers/YYYY-MM-DD.json`、`state/fundamentals/YYYY-MM-DD.json`
+     同日缓存：命中就直接合并进数据包，不重复查；未命中再 Web 查。
+   - Web：**逐票单独查**（不要把三只票合并成一次查询），每票 2–3 次：
+     ①股票统计页：`shares_diluted`、`net_debt`、`eps_ttm`/`revenue_ttm`、FCF；
+     ②**≥3 家 peers 的估值倍数**（PE/Fwd PE/EV-Sales/EV-EBITDA，带来源与 asof）；
+     ③ETF 加发行商页（NAV/折溢价/费率/持仓）。查到的原始值写进数据包，并缓存到
+     `state/fundamentals/`、`state/peers/`（同日可复用）。
+     - 没有 `shares_diluted`/`net_debt`/peers → 脚本 exit 8；补采后再跑（最多 2 次）；
      - 不能用"感觉贵/便宜"凑目标价，不能编倍数。
    - X：本轮该账号帖子（≤8 条，含链接）；
    - Hindsight：按 ticker recall；
@@ -54,8 +58,10 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
    写 `/workspace/master/jobs/current.json`。
 2. 执行唯一固定命令（逐字）：
    `/usr/bin/python3 -I -B /workspace/master/skill/scripts/deepseek_analyze.py`
-3. 读 stdout JSON。exit 0 → 进第 4 步；exit 2–7 → 本 run `analysis_source=bot-inline`，
-   读引擎 inline 完成分析并把错误类写进 state。
+3. **exit 8 = 估值输入不齐**：读 stdout `missing[]`，按字段补 Web 采集，更新 job，重跑
+   （同一命令，最多 2 次）。仍不齐 → job 加 `"allow_incomplete": true` 重跑一次。
+   exit 0 → 进第 4 步；exit 2–7 → 本 run `analysis_source=bot-inline`，读引擎 inline
+   完成分析并把错误类写进 state。
 4. **审批卡住 ≠ 脚本失败**：命令可能不会执行，run 会因审批过期而失败——
    写 `deepseek_status=blocked` 并结束本轮，**下一轮补跑**（不要在同一 run 里等）。
 5. 校验：`contracts/confidence.md` §5 的拒绝清单。
@@ -98,5 +104,7 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
 - [ ] 每只卡票有 CONFIDENCE_BLOCK + CHALLENGE_NODES；
 - [ ] 买入卡有 entry_limit、target、invalidation、confidence ≥ B；
 - [ ] 卖出/减仓卡有触发原因；
+- [ ] 摘要第一行有 `运行: <status> · <partial 原因>`；
+- [ ] 每张卡目标价有值，或写明缺什么导致 null；
 - [ ] 状态三处已写；摘要含"未下单"；
 - [ ] 没有写 watchlist / 没有编数据。

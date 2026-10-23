@@ -1,5 +1,19 @@
 # CHANGELOG · Master pack
 
+## 1.0.7 — 2026-10-23（第二轮 routine 反馈：目标价链路）
+
+- worker 新增**估值输入闸门**：调用 DeepSeek 前校验 shares_diluted / net_debt /
+  eps|revenue|ebitda / ≥3 家 peers 倍数（ETF 要发行商 NAV）；缺失则 **exit 8** 返回
+  `missing[]`，不消耗 API token。Bot 按清单补采、重写 job、重跑（最多 2 次），仍不齐才
+  `allow_incomplete:true` 让 worker 出 partial/null。
+- 新增 `--check-job` 本地调试命令；`dev/tests/test_jobcheck.py`。
+- runbook 明确：Web 必须**逐票**查股票统计页 + 3 家 peers + ETF 发行商页，并把原始值
+  缓存到 `state/fundamentals/`、`state/peers/`（同日复用）。
+- 摘要强制 `运行:` 行；持仓卡加"集中度"与"⚠️ 接近失效（≤1%）"提醒。
+- Hindsight 诊断：服务健康（8888/health 200，三 bank 在），Bot 超时为链路/连接器问题；
+  记录 `get_bank`（无 list_banks）与 Bot 侧排查命令。
+- Candidate 仍只提议未持仓票（CRWV 已是持仓，不再提议）。
+
 ## 1.0.6 — 2026-10-23
 
 - 新增 `references/runtime/config.md`：买入/加仓阈值、失效策略、trap/priced_in 闸门、

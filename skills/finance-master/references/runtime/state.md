@@ -16,6 +16,8 @@
 │   ├── advice/YYYY-MM.jsonl          # 建议卡归档（逐行 JSON）
 │   ├── pending_candidates.json       # 待用户确认的 Candidate
 │   ├── watchlists/YYYY-MM-DD.json    # 四张表快照（只读采集）
+│   ├── peers/YYYY-MM-DD.json         # 当轮采到的同业倍数（同日复用）
+│   ├── fundamentals/YYYY-MM-DD.json  # 当轮采到的财务/股数/净债（同日复用）
 │   └── .probe                        # 可写探测
 ├── out/                              # 每日摘要与卡的文件版
 │   ├── YYYY-MM-DD-<routine>.md

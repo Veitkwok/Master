@@ -54,6 +54,12 @@ invalidation_price = round(max(candidates), 2)    # 取更紧（更高）的一�
 - 不因此自动改变 stance，但要在卡上提示"可讨论减仓/对冲/提高现金"。
 - 不用记忆里的旧持仓；以本轮 IBKR + Schwab 为准。
 
+### 2.2 接近失效提醒
+
+- `|last − invalidation_price| / last ≤ 1%` → 摘要与卡上标「⚠️ 接近失效（差 X%）」；
+- 已触发确认窗口时写明进度（例：「连续 3 日收盘低于 $54.93：今日第 1 日」）；
+- 不改变 stance，但必须显式提醒；下一轮继续跟踪。
+
 ---
 
 ## 3. 持仓复核（holdings routine）

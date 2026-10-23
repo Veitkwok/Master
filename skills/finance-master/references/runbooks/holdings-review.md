@@ -48,11 +48,15 @@
 ## 4. 完整分析（≤3 个仓）
 
 1. 按 `contracts/data-pack.md` 组包（该仓 + Web 最新事实/财报日程）。
-   **每只触发分析的仓必须查 Web 两件事**：①最新财报/事件；②≥3 家 pe peers 倍数
-   （PE/EV-Sales/EV-EBITDA 至少一种，带来源与 asof）。没有 peers 时目标价只能 null。
+   先读 `state/peers/YYYY-MM-DD.json`、`state/fundamentals/YYYY-MM-DD.json`
+   同日缓存（命中则合并，不重复查）；未命中再查。
+   **每只触发分析的仓必须逐票查 Web**：①股票统计页（shares_diluted / net_debt /
+   eps 或 revenue / FCF）；②≥3 家 peers 倍数（PE/Fwd PE/EV-Sales/EV-EBITDA，带来源与 asof）；
+   ③最新财报/事件。查到的值写进数据包并缓存 `state/fundamentals/`、`state/peers/`。
 2. 写 `/workspace/master/jobs/current.json`（`mode=routine`），执行固定命令
-   `/usr/bin/python3 -I -B /workspace/master/skill/scripts/deepseek_analyze.py`；
-   exit≠0 或审批卡住 → bot-inline（审批卡住则本 run 记失败、下轮补）。
+   `/usr/bin/python3 -I -B /workspace/master/skill/scripts/deepseek_analyze.py`。
+   **exit 8 → 按 missing[] 补采 → 重跑（最多 2 次）**；仍不齐加 `allow_incomplete:true`。
+   exit 2–7 或审批卡住 → bot-inline（审批卡住则本 run 记失败、下轮补）。
 3. worker → CONFIDENCE_BLOCK / CHALLENGE_NODES / 估值 / trap / priced-in。
 4. 按 `decisions/sell.md` §3 判定：SELL / TRIM / HOLD / ADD / REVIEW；
    已持仓的失效规则用 §1.2（结构+论据+确认窗口），**不用**新买入的 15% 止损。

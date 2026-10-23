@@ -13,7 +13,10 @@ asof: 2026-10-23T07:32:00+08:00
 routine: primary_babybus | primary_haochi | primary_balder | supplement | holdings | adhoc
 mode: routine | adhoc
 market_session: pre | regular | post | closed      # 以价格时点为准
-tickers: [NVDA, MRVL]                              # 本轮要处理的票
+tickers: [NVDA, MRVL]                              # 本轮要处理的票（列表）
+symbols:                                           # 每票数据（map，见 §2）
+  NVDA: {...}
+  MRVL: {...}
 connectors:
   ibkr: live|down
   x: live|down
@@ -27,7 +30,7 @@ gaps: []                                           # 全局缺口
 
 ---
 
-## 2. 每票数据（`tickers.<SYM>`）
+## 2. 每票数据（`symbols.<SYM>`）
 
 ```yaml
 NVDA:
@@ -104,6 +107,19 @@ NVDA:
     name_bucket: mega_cap
   gaps: [fundamentals_web.peers]    # 每票缺口
 ```
+
+### 2.1 估值输入最低集（worker 前置闸门，exit 8）
+
+Bot 写完 job 后先跑固定命令；脚本在**调用 DeepSeek 之前**校验每只票：
+
+| 类型 | 必须有 |
+|------|--------|
+| 个股 | `quote.last`；`fundamentals_web.shares_diluted > 0`；`.net_debt`（可 0/负）；`.eps_ttm` 或 `.revenue_ttm` 或 `.ebitda_ttm` 至少一个；`.peers` ≥3 家且每家 `multiples` 至少一个数值（pe/fwd_pe/ev_sales/ev_ebitda） |
+| ETF | `quote.last`；`fundamentals_web.etf_issuer.nav`（发行商 NAV） |
+
+不齐 → 脚本 **exit 8**，stdout 返回 `{"status":"incomplete","missing":[{"ticker":"VST","fields":[...]}]}`，
+**不消耗 API token**。Bot 按缺失清单补 Web 采集 → 重写 job → 重跑固定命令；最多 2 次。
+仍不齐 → job 加 `"allow_incomplete": true` 再跑一次，worker 允许返回 partial/null（写明 gaps）。
 
 `positions` / `watchlists` 是全局组（watchlist 名以连接器返回为准，大小写/单复数不敏感）：
 

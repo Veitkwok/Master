@@ -29,6 +29,13 @@ web_queries_per_ticker: "2-3 (financials + peers; ETF issuer page)"
 x_reads_primary: "1-2 per run"
 x_reads_supplement: "3-6 per run"
 
+# 估值输入闸门（worker exit 8）
+valuation_inputs_required: true
+web_collect_attempts: 2          # exit 8 后补采并重跑的最多次数
+allow_incomplete_after_attempts: true  # 仍缺 → allow_incomplete=true 让 worker 出 partial/null
+peer_count_min: 3
+peer_multiples_any: [pe, fwd_pe, ev_sales, ev_ebitda]
+
 # Candidate
 candidate_min_mentions: 2
 candidate_min_accounts: 2

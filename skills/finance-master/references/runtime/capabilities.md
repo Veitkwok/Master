@@ -93,6 +93,16 @@ watchlist 实测名：`Favorites`、`ETFs`、`Assets`、`Nasdaq-QQQ`、`Candidat
 Hindsight 探测：最多重试 2 次（间隔 ~2s）；仍失败就记 `hindsight: down`，
 继续本轮并在摘要标注——**不阻断**。
 
+### 5.2 Hindsight 实测（2026-10-23）
+
+- Bot 侧连接器工具是 `get_bank`（**没有** `list_banks`）；bank 名 `sherlock` / `hermes`。
+- 服务地址：Mac Mini `http://100.114.80.63:8888`；健康检查 `GET /health` → 200
+  `{"status":"healthy","database":"connected"}`；列 bank：`GET /v1/default/banks`
+  （2026-10-23 14:32 从 Mac Mini 本机与 tailnet IP 均正常，三个 bank 都在）。
+- Bot 若超时：先在 Bot 上 `curl -m 5 http://100.114.80.63:8888/health` 排除网络，
+  再看 Tailscale 状态（Bot 节点 `grok-bot-vm-2`，经 DERP cn）；偶发掉线按 down 处理。
+- 旧节点 `grok-bot-vm-1` / `grok-bot-vm` 已 offline，需在 Tailscale 管理后台手动删除。
+
 ## 6. 已知不稳定项
 
 - **IBKR**：用户已确认当前正常；若 OAuth 失效 → `ibkr: down`，不出买卖卡。

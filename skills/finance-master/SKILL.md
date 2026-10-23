@@ -105,6 +105,10 @@ S8 交付（runtime/delivery.md：聊天摘要 + /workspace 文件 + 可选 Page
   卡片标 `analysis_source: bot-inline` 并在摘要说明。
   **审批卡住不是脚本异常**：命令可能不执行，run 记为失败，下一轮补跑
   （见 `runtime/approvals.md`）。
+- **估值输入闸门（exit 8）**：脚本在调用 API 前校验每票的 shares_diluted / net_debt /
+  eps 或 revenue / ≥3 家 peers 倍数（ETF 要发行商 NAV）。缺失时 exit 8 并返回 `missing[]`，
+  **不消耗 API token**；Bot 按清单补 Web 采集、重写 job、重跑同一命令（最多 2 次），
+  仍不齐才加 `allow_incomplete: true` 让 worker 出 partial/null。
 - 一次 routine 最多 1 次 worker 调用；ad-hoc 深度分析最多 2 次（估值 → memo）。
 - run 状态记录：`deepseek_status`、`deepseek_error_class`、`deepseek_usage`、
   `deepseek_cache_hit`、`deepseek_thinking`。
@@ -122,6 +126,9 @@ DeepSeek 负责耗 token 的分析与计算；两边都不越界。
 
 **注意：这次必须同时给出买入、目标价、卖出建议**——卡上三样都不可缺；
 某项确实无法给出时写 `null` 并说明原因。
+
+摘要**第一行必须是** `运行: <succeeded|partial|failed> · <partial 原因>`；没有这一行视为
+摘要不合格。卡上还要显示：`集中度`（持仓复核，≥80% 标注）与 `⚠️ 接近失效`（距失效 ≤1%）。
 
 ---
 
