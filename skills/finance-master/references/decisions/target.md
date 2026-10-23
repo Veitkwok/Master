@@ -70,9 +70,20 @@ Bot 收口顺序：
 2. 否则用 `computed_comps`（basis 写 `comps(script)`，并在卡上注明脚本计算）；
 3. 都没有 → target null。
 
-`computed_comps.quality` 的 cap 必须执行：`ok`/`wide` → 置信度 ≤B；`very_wide` → ≤C；
-`insufficient` → 不能用作 target。`very_wide` 可以把 target 显示在卡上（供你参考），
-但**不得据此买入**；也**不得仅因 target 触发减仓/卖出**（见 stance.md）。
+`computed_comps.quality` 判定（脚本执行，写进 stdout）：
+
+| 条件 | quality | cap |
+|------|---------|-----|
+| 同业 max/min ≤3，且区间宽度 ≤100%，且 \|upside\| ≤200% | `ok` | B |
+| 同业 max/min >3，或宽度 >100%，或 \|upside\| >200% | `very_wide` | C |
+| 同业 max/min >**10** | `very_wide` | C |
+| base > 5×现价 或 base < 0.2×现价 | `insufficient` | C（不可用） |
+
+- 多 lens 时：先按 quality（ok→wide→very_wide→insufficient）、再按 |upside| 最小、
+  再按区间宽度选一个 lens（避免挑中"看起来精确但荒谬"的倍数）。
+- `very_wide` 可以把 target 显示在卡上（供参考），但**不得据此买入**；
+  `insufficient` 不显示为 target，只写"估值输入不可用"。
+- `very_wide`/`insufficient` **不得仅因 target 触发减仓/卖出**（见 stance.md）。
 
 ---
 

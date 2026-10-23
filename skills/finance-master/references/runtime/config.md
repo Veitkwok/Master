@@ -46,9 +46,13 @@ peer_count_min: 3
 valuation_routes: [dcf, comps]        # 至少一条完整
 comps_lenses: ["eps_ttm+pe", "revenue_ttm+ev_sales", "ebitda_ttm+ev_ebitda"]
 comps_min_peers_per_lens: 3
-comps_wide_threshold: 3               # max/min > 3 -> wide_comps（降置信度，不 blocked）
-comps_very_wide_width: 1.0            # (high-low)/base > 1.0 -> very_wide（C，不得买入/卖出）
+comps_wide_threshold: 3               # max/min > 3 -> wide（B）
+comps_very_wide_dispersion: 10        # max/min > 10 -> very_wide（C）
+comps_very_wide_width: 1.0            # (high-low)/base > 1.0 -> very_wide（C）
+comps_very_wide_upside: 2.0           # |upside| > 200% -> very_wide（C）
+comps_implausible_ratio: [0.2, 5.0]   # base/现价 超出区间 -> insufficient（不可用）
 target_quality_gate: B                # 触发 BUY/TRIM/SELL 的 target 最低质量
+trim_sell_min_confidence: B           # target 触发的 TRIM/SELL 还需整体 grade ≥B
 
 # Candidate
 candidate_min_mentions: 2

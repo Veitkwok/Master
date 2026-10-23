@@ -29,8 +29,9 @@
 - 数据包若已给 `wacc`（或 `rf`/`erp`）就直接用；只有这些都没有时才用引擎默认
   （rf≈10Y UST、ERP 4.5–5.5%、税 21%、terminal g 2–2.5%）。**不要因为没有
   「WACC 来源页」就把估值标 blocked**；来源缺失写进 limiting 即可。
-- holdings 模式没有 `social_x`（本包就不采 X）；不要把 `social_x.posts` 写进
-  `fields_gap`，也不要求它。
+- `social_x` 是可选证据，**任何模式都不要把它写进 `fields_gap`**；holdings 模式本来就不采 X。
+- `valuation_params.wacc` 也是可选：数据包没有就用引擎默认；**不要把 WACC/WACC 来源页
+  写进 `fields_gap`**（只在 limiting 里提一句即可）。
 - 算 median 前先核对口径：EPS × PE 应≈现价；只有 1 家 peer 时不得称「中位数」，
   写 `single_peer`。
 - ETF 没有 FCF：用 `etf_issuer` 的 NAV/折溢价/费率与产品口径；缺 NAV → target null。

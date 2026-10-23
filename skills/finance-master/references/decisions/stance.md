@@ -43,6 +43,9 @@ user_cash        用户本轮说出的可投现金（无则 null）
 - **target 质量**：只有质量 ≥B 的 target（worker 的 DCF/可比，或 `computed_comps.quality=ok/wide`）
   才能触发 #4/#5/#6/#7 的买入/减仓/卖出；`very_wide`/`insufficient` 的 target 只能
   展示与参考，**不能据此 BUY，也不能仅因价格到 target 触发 TRIM/SELL**。
+- **target 触发的 TRIM/SELL 还要求卡片整体 confidence ≥B**；若 grade=C（例如极端 RSI、
+  证据弱），即使现价 ≥ target，也只能 `HOLD`+写"target 已到但置信不足，转复核"，
+  不能自动减仓/卖出。
 - **纯社交证据（grade C）**：永远不 `BUY`；未持有 → `WATCH`，已持有 → `HOLD`。
 - **ETF**：产品/角色判断来自 `etf` 模块（M1–M7）；`target` 无 NAV/band 依据时
   不得 `BUY`，最多 `WATCH`。

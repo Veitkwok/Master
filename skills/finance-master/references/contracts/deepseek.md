@@ -99,7 +99,10 @@ job 文件（Bot 写）：
   可比路线（目标指标 + ≥3 家匹配 peers）至少一条完整，否则 exit 8。
 - 脚本会在每票下附 `computed_comps`（确定性可比回退，来自 peers + 目标指标）；
   worker 忽略分散、拒绝出 comps 时，Bot 用这份回退收口（见 decisions/target.md §2.2）。
-- 脚本会把 worker 的 `ticker` 归一成 `symbol` 并记 warning；下游字段统一 `symbol`。
+- 脚本会把 worker 的 `ticker` 归一成 `symbol` 并记 warning；stdout/result/card 统一 `symbol`。
+- 脚本自动清理可选 `fields_gap`（`social_x.*`、`wacc*`），并把清理记录写进 `warnings`。
+- `computed_comps.quality`：`ok`/`wide`（cap B）、`very_wide`（cap C，不可交易）、
+  `insufficient`（base >5× 或 <0.2× 现价，不可用作 target）；多 lens 按质量与 |upside| 选。
 - 长分析不回流 Bot：完整结果写 `out/current.result.json`，Bot 只在 stdout 缺字段时才读。
 
 ### 3.2 脚本内部校验

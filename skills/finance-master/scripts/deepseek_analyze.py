@@ -268,12 +268,17 @@ def compute_comps(pack: dict) -> dict:
                 high = ((high_mult * metric) - net_debt) / shares
             ratio = (max(mults) / min(mults)) if min(mults) > 0 else 999
             width = ((high - low) / base) if base > 0 else 999
+            last0 = last if _num(last) and last > 0 else None
+            upside = (base / last0 - 1) if last0 else None
             quality = "ok"
             cap = "B"
             if ratio > 3:
                 quality, cap = "wide", "B"
-            if width > 1.0:
+            if width > 1.0 or ratio > 10 or (upside is not None and abs(upside) > 2.0):
                 quality, cap = "very_wide", "C"
+            # a target more than 5x (or less than 0.2x) the live price is not usable
+            if last0 and (base / last0 > 5 or base / last0 < 0.2):
+                quality, cap = "insufficient", "C"
             lenses.append({
                 "lens": name,
                 "metric": key,
@@ -285,19 +290,23 @@ def compute_comps(pack: dict) -> dict:
                 "median_multiple": round(med, 4),
                 "dispersion_ratio": round(ratio, 2),
                 "width_ratio": round(width, 3),
+                "upside_pct": round(upside * 100, 1) if upside is not None else None,
                 "quality": quality,
                 "confidence_cap": cap,
+                "usable": quality != "insufficient",
             })
 
         try_lens("pe", fw.get("eps_ttm"), "pe", "pe")
         try_lens("ev_sales", fw.get("revenue_ttm"), "ev_sales", "ev")
         try_lens("ev_ebitda", fw.get("ebitda_ttm"), "ev_ebitda", "ev")
         if lenses:
-            rank = {"ok": 0, "wide": 1, "very_wide": 2}
-            lenses.sort(key=lambda x: (rank[x["quality"]], abs(x["width_ratio"])))
+            rank = {"ok": 0, "wide": 1, "very_wide": 2, "insufficient": 3}
+            lenses.sort(key=lambda x: (
+                rank[x["quality"]],
+                abs(x.get("upside_pct") or 999),
+                abs(x["width_ratio"]),
+            ))
             best = dict(lenses[0])
-            if _num(last) and last > 0:
-                best["upside_pct"] = round((best["base"] / last - 1) * 100, 1)
             out[sym] = best
     return out
 
@@ -513,6 +522,18 @@ def run_analysis(job: dict, key: str) -> int:
             t["symbol"] = t["ticker"]
             normalized.append(str(t["symbol"]))
         t.pop("ticker", None)
+    optional_gap_prefixes = ("social_x", "fundamentals_web.wacc", "wacc_source_page")
+    for t in result.get("tickers", []):
+        if not isinstance(t, dict):
+            continue
+        gaps = t.get("fields_gap")
+        if isinstance(gaps, list):
+            kept = [g for g in gaps if not str(g).startswith(optional_gap_prefixes)]
+            removed = len(gaps) - len(kept)
+            if removed:
+                t["fields_gap"] = kept
+                result.setdefault("warnings", []).append(
+                    f"dropped optional gaps for {t.get('symbol')}: social_x/wacc" )
     if normalized and "warnings" not in result:
         result["warnings"] = []
     if normalized:
@@ -580,7 +601,7 @@ def run_analysis(job: dict, key: str) -> int:
         "asof": job.get("asof") or "",
         "tickers": [
             {
-                "ticker": t.get("symbol"),
+                "symbol": t.get("symbol"),
                 "thesis": t.get("thesis", ""),
                 "conviction": t.get("conviction"),
                 "confidence_block": t.get("confidence_block"),

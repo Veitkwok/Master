@@ -61,16 +61,30 @@ p4 = pack("X", stock(shares_diluted=100, net_debt=0, ebitda_ttm=10,
                       peers=[peer("A", ev_ebitda=8), peer("B", ev_ebitda=10)]))
 CASES.append(("insufficient peers -> none", worker.compute_comps(p4).get("X") is None))
 
-# 5) gate: negative fcf, no comps route -> incomplete
+# 5) CRWV-like: EV/EBITDA peers 21x apart + absurd base -> should pick EV/Sales, not "wide"
+p5 = pack("CRWV", stock(shares_diluted=1000, net_debt=20000, ebitda_ttm=3000,
+                         revenue_ttm=8000,
+                         peers=[peer("NBIS", ev_ebitda=174.39, ev_sales=33.2),
+                                peer("ORCL", ev_ebitda=14.68, ev_sales=7.04),
+                                peer("IREN", ev_ebitda=311.91, ev_sales=16.92)]))
+c5 = worker.compute_comps(p5).get("CRWV")
+CASES.append(("CRWV chooses plausible lens", c5 is not None
+              and c5["lens"] == "ev_sales"
+              and c5["quality"] in {"very_wide", "insufficient"}
+              and c5["base"] < 500))
+# note: with last=20 in the helper, EV/Sales base is also implausible; the point is
+# the lens choice and quality downgrade, not the exact base.
+
+# 6) gate: negative fcf, no comps route -> incomplete
 p5 = pack("N", stock(shares_diluted=100, net_debt=0, revenue_ttm=10, fcf_ttm=-5))
 missing = worker.check_valuation_inputs(p5)
 CASES.append(("gate rejects negative-fcf-only", len(missing) == 1
               and any("<=0" in f for f in missing[0]["fields"])))
 
 # 6) gate: negative fcf + comps route -> ok
-p6 = pack("N", stock(shares_diluted=100, net_debt=0, revenue_ttm=100, fcf_ttm=-5,
+p7 = pack("N", stock(shares_diluted=100, net_debt=0, revenue_ttm=100, fcf_ttm=-5,
                       peers=[peer("A", ev_sales=2), peer("B", ev_sales=3), peer("C", ev_sales=4)]))
-CASES.append(("gate allows comps route", worker.check_valuation_inputs(p6) == []))
+CASES.append(("gate allows comps route", worker.check_valuation_inputs(p7) == []))
 
 
 def main() -> int:

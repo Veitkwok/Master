@@ -1,5 +1,17 @@
 # CHANGELOG · Master pack
 
+## 1.0.11 — 2026-10-23（CRWV 荒谬 target + 字段噪音）
+
+- `computed_comps` 质量规则修正：同业 max/min >**10** 或 |upside| >200% → very_wide（C）；
+  base >5× 或 <0.2× 现价 → insufficient（不可用作 target）。多 lens 按质量 + |upside| 选，
+  避免选中"宽度窄但荒谬"的 EV/EBITDA。
+- stdout 字段 `ticker` 改为 `symbol`（result 早已是 symbol）。
+- 脚本自动清理可选 `fields_gap`：`social_x.*`、`wacc*`（并记 warnings）。
+- target 触发的 TRIM/SELL 追加要求：整体 confidence ≥B；C 级只 HOLD + 复核提示
+  （MOS 这种 C + RSI 9 不再自动 TRIM）。
+- config 增加 comps 质量阈值与 trim/sell 置信门槛；worker prompt 同步。
+- `dev/tests/test_comps.py` 增加 CRWV 类案例（应选 EV/Sales，不选荒谬 EV/EBITDA）。
+
 ## 1.0.10 — 2026-10-23（目标价重测：worker 不肯出 comps）
 
 - 闸门修正：DCF 路线要求 `fcf_ttm > 0`（负 FCF 不再冒充 DCF 路线）。
