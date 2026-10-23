@@ -1,5 +1,13 @@
 # CHANGELOG · Master pack
 
+## 1.0.8 — 2026-10-23（Hindsight 迁移到 Cloudflare MCP）
+
+- Hindsight 接入从 Tailscale 改为 **Cloudflare Tunnel + Caddy 令牌网关 + 远程 MCP**：
+  Bot 连接器 `hindsight-sherlock-cf`，工具 `get_bank` / `recall` / `sync_retain`。
+- memory 契约、capabilities、SKILL、config、README 全部更新；令牌不进技能/仓库/聊天。
+- 失败处理：重试 1 次后按 `hindsight: down` 继续，标 `memory: missing`，不阻断。
+- `dev/research/hindsight-connectivity.md` 重写为当前架构与排障手册；旧 Tailscale 方案弃用。
+
 ## 1.0.7 — 2026-10-23（第二轮 routine 反馈：目标价链路）
 
 - worker 新增**估值输入闸门**：调用 DeepSeek 前校验 shares_diluted / net_debt /

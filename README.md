@@ -118,7 +118,7 @@ Master/
 | 全是"观望" | 检查是否 IBKR/X/DeepSeek 全挂；检查 target 是否因缺 fundamentals/peers 被 blocked；检查 confidence 是否被 ceiling 压到 C |
 | DeepSeek 未被调用 | 密钥缺失 → bot-inline；审批拦截 → 该 run 失败、下轮补（不是脚本异常），见 approvals.md 与 routine-setup §2 |
 | IBKR 读不到 | 重新授权连接器；期间只出观察/持仓列表 |
-| Hindsight 掉线 | 正常，跳过记忆继续（探测重试 2 次后仍失败就标 partial） |
+| Hindsight 掉线 | 重试 1 次后跳过记忆继续；检查 Mac Mini 的 `cloudflared` 与 Caddy 网关、Bot 连接器 `hindsight-sherlock-cf` 的令牌 |
 | 技能不出现 | 重跑 install.sh；或让 routine 直接读 `/workspace/master/skills/finance-master/SKILL.md` |
 
 ---

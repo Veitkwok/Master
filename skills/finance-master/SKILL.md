@@ -68,7 +68,8 @@ S8 交付（runtime/delivery.md：聊天摘要 + /workspace 文件 + 可选 Page
 1. **IBKR**：读一次持仓或账户余额 → `ibkr: live`；顺带列 watchlists
    （Favorites / ETFs / Assets / Nasdaq-QQQ / Candidate；实际名以连接器返回为准，大小写/单复数不敏感）。
 2. **X**：读目标账号时间线 1 次（最少 1 条）→ `x: live`。
-3. **Hindsight**：recall 1 次（bank `sherlock`）。**掉线是已知常态，不阻断。**
+3. **Hindsight**：用连接器 `hindsight-sherlock-cf` 的 `get_bank`/`recall` 探测一次
+   （Cloudflare MCP，不再走 Tailscale）。失败重试 1 次后按 down 处理，**不阻断**。
 4. **Schwab**：连接器存在则读一次持仓/交易；无连接器或失败 → `schwab: skip`。
 5. **状态目录**：`/workspace/master/state/` 可写 → `state: ok`；否则本 run 内存去重。
 6. **DeepSeek**：需要分析时才探测（`scripts/deepseek_analyze.py --selftest`），
@@ -158,10 +159,12 @@ DeepSeek 负责耗 token 的分析与计算；两边都不越界。
 
 ## 8. 记忆（Hindsight bank `sherlock`）
 
-- 分析前按 ticker recall；卡定稿后 retain 一条 case；用户给出
+- 连接器 **`hindsight-sherlock-cf`**（Cloudflare Tunnel + MCP，令牌在连接器里，
+  不写进技能）；工具：`get_bank` / `recall` / `sync_retain`。
+- 分析前按 ticker recall；卡定稿后用 `sync_retain` 写一条 case；用户给出
   `watching|ignored|bought|sold|killed` 后写 postmortem。
 - **不存行情价格**；记忆里的价格一律作废，只用本轮 IBKR。
-- Hindsight 掉线：继续分析，卡上注明"记忆未读到"。
+- Hindsight 失败（401/502/521/超时）：重试 1 次，仍失败继续分析，卡上注明"记忆未读到"。
 - 细节：`contracts/memory.md`。
 
 ---
@@ -173,7 +176,7 @@ DeepSeek 负责耗 token 的分析与计算；两边都不越界。
 | IBKR 行情 | 持仓复核只列表；不出买入/卖出 | `source_error: ibkr_quote` |
 | IBKR 持仓 | 卡片 `position_context: unknown`；建议降为观察 | 同上 |
 | X | KOL routine 报"本轮无 X 数据"；持仓复核照跑 | `source_error: x` |
-| Hindsight | 继续（已知常态） | `memory: missing` |
+| Hindsight | 继续（Mac Mini/cloudflared 不可用时） | `memory: missing` |
 | Schwab | `position_context` 只按 IBKR 填 | `schwab: skip` |
 | watchlists | 跳过候选归类 | `watchlists: missing` |
 | DeepSeek | Bot inline 分析 | `analysis_source: bot-inline` |

@@ -142,10 +142,11 @@ worker 只吃数据包 + 固定引擎文件清单（稳定 system 前缀利于�
 |----|------|
 | DeepSeek 数据边界 | 接受把归一化后的持仓/成本/公开帖子发给 DeepSeek（专用 API key 只给 Bot 用） |
 | DeepSeek 主路径 | Bot 本地固定命令 + `jobs/current.json` + `.secrets/deepseek.key`；不走 Tailscale |
-| 备选路径 | Mac Mini 常开可做 worker；Tailscale 不稳定，暂不采用（shell 审批反复失败时再议） |
+| 备选路径 | Mac Mini 常开可做 worker；已验证 **Cloudflare Tunnel**（Hindsight 同款），shell 审批反复失败时可复用 |
 | Auto Review | 保持开启；routine 审批失败 = 该 run 失败、下一轮补 |
 | 模型预算 | 不设上限，优先 Flash（当前 Flash ≥ Pro）；深研才用 Pro |
-| Hindsight 写入 | 允许写 bank `sherlock`（偶发掉线不阻断） |
+| Hindsight 接入 | **Cloudflare Tunnel + Caddy 令牌网关 + 远程 MCP**（2026-10-23，Tailscale 已弃用）；Bot 用 `hindsight-sherlock-cf`，令牌只在连接器/Mac 文件，不进仓库 |
+| Hindsight 写入 | 允许写 bank `sherlock`（`sync_retain`）；`hermes`/`sissyfication` 不写；失败不阻断 |
 | 已有持仓止损 | **不设成本止损**，继续持有；只用结构位 + 论据 + 确认窗口（2026-10-23） |
 | 仓库可见性 | 保持 PUBLIC（2026-10-23） |
 | 目标价 | 6–12 月估值锚（DCF + 可比收口），90 天/财报复核 |

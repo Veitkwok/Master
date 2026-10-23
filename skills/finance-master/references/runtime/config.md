@@ -29,6 +29,15 @@ web_queries_per_ticker: "2-3 (financials + peers; ETF issuer page)"
 x_reads_primary: "1-2 per run"
 x_reads_supplement: "3-6 per run"
 
+# Hindsight（2026-10-23 起 Cloudflare MCP；令牌不在本文件）
+hindsight_connector: hindsight-sherlock-cf
+hindsight_base_url: https://hindsight.veitkwok.us.kg/mcp/sherlock/
+hindsight_tool_read: recall
+hindsight_tool_write: sync_retain
+hindsight_tool_bank: get_bank
+hindsight_retry: 1
+hindsight_failure_mode: non_blocking   # 失败继续跑，标 memory: missing
+
 # 估值输入闸门（worker exit 8）
 valuation_inputs_required: true
 web_collect_attempts: 2          # exit 8 后补采并重跑的最多次数
