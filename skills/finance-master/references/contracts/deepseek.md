@@ -93,7 +93,10 @@ job 文件（Bot 写）：
 }
 ```
 
+- **字段名统一用 `symbol`**（stdout/result/card 一致；Bot 内部如需 `ticker` 自行映射）。
 - **不含 stance/买入/卖出**：stance 由 `decisions/stance.md` 判定，Bot 不信 worker 的立场。
+- 估值闸门是"路线级"：DCF 路线（fcf+shares+net_debt+revenue）或可比路线
+  （目标指标 + ≥3 家匹配 peers）至少一条完整，否则 exit 8。
 - 长分析不回流 Bot：完整结果写 `out/current.result.json`，Bot 只在 stdout 缺字段时才读。
 
 ### 3.2 脚本内部校验

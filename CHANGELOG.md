@@ -1,5 +1,16 @@
 # CHANGELOG · Master pack
 
+## 1.0.9 — 2026-10-23（5 条 routine 全量测试反馈）
+
+- 估值闸门升级为"**路线级**"：DCF 路线（fcf+shares+net_debt+revenue）或可比路线
+  （目标指标 + ≥3 家匹配 peers）至少一条完整；不再是字段拼盘。
+- 可比法明确：DCF blocked 必须尝试可比；**同业分散不构成 blocked**（median + 区间，
+  wide 降置信度）；只有匹配 peers 不足 3 家才允许 target=null。
+- worker 硬规则：禁止使用训练知识里的财务数字（NVDA 现金幻觉的教训）；输出统一 `symbol`。
+- 状态语义写死：有 target/字段缺口一律 `partial`，不能写 succeeded。
+- Web 采集优先 `WebFetch`（curl 可能被 stockanalysis 等站点拦截）。
+- runbook 要求每轮覆盖写全新 job，不读旧 job（避免 haochi 那类误跑旧 job）。
+
 ## 1.0.8 — 2026-10-23（Hindsight 迁移到 Cloudflare MCP）
 
 - Hindsight 接入从 Tailscale 改为 **Cloudflare Tunnel + Caddy 令牌网关 + 远程 MCP**：

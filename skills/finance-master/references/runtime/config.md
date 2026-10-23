@@ -43,7 +43,10 @@ valuation_inputs_required: true
 web_collect_attempts: 2          # exit 8 后补采并重跑的最多次数
 allow_incomplete_after_attempts: true  # 仍缺 → allow_incomplete=true 让 worker 出 partial/null
 peer_count_min: 3
-peer_multiples_any: [pe, fwd_pe, ev_sales, ev_ebitda]
+valuation_routes: [dcf, comps]        # 至少一条完整
+comps_lenses: ["eps_ttm+pe", "revenue_ttm+ev_sales", "ebitda_ttm+ev_ebitda"]
+comps_min_peers_per_lens: 3
+comps_wide_threshold: 3               # max/min > 3 -> wide_comps（降置信度，不 blocked）
 
 # Candidate
 candidate_min_mentions: 2

@@ -179,8 +179,47 @@ def _num(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
 
 
+def _peer_values(peers, key: str) -> list[float]:
+    vals = []
+    for peer in peers or []:
+        if isinstance(peer, dict):
+            mult = peer.get("multiples") or {}
+            v = mult.get(key)
+            if _num(v):
+                vals.append(float(v))
+    return vals
+
+
+def _has_dcf_route(fw: dict) -> bool:
+    return (
+        _num(fw.get("fcf_ttm"))
+        and _num(fw.get("shares_diluted")) and fw.get("shares_diluted", 0) > 0
+        and _num(fw.get("net_debt"))
+        and _num(fw.get("revenue_ttm"))
+    )
+
+
+def _comp_routes(fw: dict) -> list[str]:
+    peers = fw.get("peers") if isinstance(fw.get("peers"), list) else []
+    routes = []
+    if _num(fw.get("eps_ttm")) and len(_peer_values(peers, "pe")) >= 3:
+        routes.append("pe")
+    if _num(fw.get("revenue_ttm")) and len(_peer_values(peers, "ev_sales")) >= 3:
+        routes.append("ev_sales")
+    if _num(fw.get("ebitda_ttm")) and len(_peer_values(peers, "ev_ebitda")) >= 3:
+        routes.append("ev_ebitda")
+    return routes
+
+
 def check_valuation_inputs(pack: dict) -> list[dict]:
-    """Return [{ticker, fields:[...]}] for tickers missing minimum valuation inputs."""
+    """Return [{ticker, fields:[...]}] when a ticker has no usable valuation route.
+
+    A route is usable when EITHER:
+      - DCF: fcf_ttm + shares_diluted + net_debt + revenue_ttm; OR
+      - comps: target metric + >=3 peers carrying the matching multiple
+        (pe with eps_ttm / ev_sales with revenue_ttm / ev_ebitda with ebitda_ttm).
+    Otherwise the Bot must collect more before the worker call (exit 8).
+    """
     missing = []
     for sym, t in _tickers_map(pack).items():
         if not isinstance(t, dict):
@@ -200,27 +239,25 @@ def check_valuation_inputs(pack: dict) -> list[dict]:
             if not _num(issuer.get("nav")):
                 fields.append("fundamentals_web.etf_issuer.nav")
         else:
-            if not _num(fw.get("shares_diluted")) or fw.get("shares_diluted", 0) <= 0:
-                fields.append("fundamentals_web.shares_diluted")
-            if not _num(fw.get("net_debt")):
-                fields.append("fundamentals_web.net_debt")
-            if not any(_num(fw.get(k)) for k in ("eps_ttm", "revenue_ttm", "ebitda_ttm")):
-                fields.append("fundamentals_web.{eps_ttm|revenue_ttm|ebitda_ttm}")
-            peers = fw.get("peers")
-            if not isinstance(peers, list) or len(peers) < 3:
-                fields.append("fundamentals_web.peers(>=3)")
-            else:
-                for i, peer in enumerate(peers, 1):
-                    if not isinstance(peer, dict):
-                        fields.append(f"fundamentals_web.peers[{i}].multiples")
-                        continue
-                    mult = peer.get("multiples") or {}
-                    if not any(_num(mult.get(k)) for k in ("pe", "fwd_pe", "ev_sales", "ev_ebitda")):
-                        fields.append(f"fundamentals_web.peers[{i}].multiples")
+            dcf = _has_dcf_route(fw)
+            routes = _comp_routes(fw)
+            if not dcf and not routes:
+                if not _num(fw.get("fcf_ttm")):
+                    fields.append("fundamentals_web.fcf_ttm(DCF)")
+                if not _num(fw.get("shares_diluted")) or fw.get("shares_diluted", 0) <= 0:
+                    fields.append("fundamentals_web.shares_diluted")
+                if not _num(fw.get("net_debt")):
+                    fields.append("fundamentals_web.net_debt")
+                if not _num(fw.get("revenue_ttm")):
+                    fields.append("fundamentals_web.revenue_ttm")
+                peers = fw.get("peers")
+                if not isinstance(peers, list) or len(peers) < 3:
+                    fields.append("fundamentals_web.peers(>=3)")
+                else:
+                    fields.append("fundamentals_web.peers.multiples(3+ per lens, matching eps/revenue/ebitda)")
         if fields:
             missing.append({"ticker": sym, "fields": fields})
     return missing
-
 
 # ---------------------------------------------------------------------------
 # API

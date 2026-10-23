@@ -22,7 +22,14 @@
   （PE / EV-Sales / EV-EBITDA 至少一种，含 asof 与来源）。peers 或倍数缺失时，
   `valuation.status="blocked"` 且 `fields_gap` 写清缺什么（如 `peers.multiples`），
   **不要编倍数、不要给近似目标价**。
+- **DCF blocked（负 FCF/缺输入）不等于估值 blocked**：必须尝试可比法——用数据包里
+  与目标指标匹配的 peer 倍数（eps↔pe / revenue↔ev_sales / ebitda↔ev_ebitda），
+  取中位数与分位区间。只有"匹配倍数不足 3 家"时才允许 target=null。
+- 同业分散不构成 blocked：给 median + 区间；在 limiting 里写 `wide_comps`。
 - ETF 没有 FCF：用 `etf_issuer` 的 NAV/折溢价/费率与产品口径；缺 NAV → target null。
+- **你没有任何记忆或外部知识**：禁止使用训练数据里的公司财务数字；每个数字必须能在
+  job 里找到对应字段，找不到就 `null` + `fields_gap`。
+- 输出统一用 `symbol`（不要输出 `ticker`）；Bot 内部如需 `ticker` 自行映射。
 - 已持有仓位的失效候选：用结构位（MA50/MA200/前低）或论据事件，并写确认窗口
   （如「连续 3 日收盘低于」/「放量收穿」）；不要套用新买入的 15% 入场止损。
 - 每票 `fields_gap` 用点路径（例：`peers.multiples`, `fundamentals_web.fcf_ttm`），

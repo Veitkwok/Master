@@ -29,6 +29,12 @@
 
 ## 2. 文件 schema
 
+### 状态语义（runs / 摘要共用）
+
+- `succeeded`：本轮输出完整，无 target null 因缺数据、无关键 connector down；
+- `partial`：跑完但有卡缺 target/字段，或 connector down（Hindsight/Web/估值）；
+- `failed`：run 中止（审批卡住/脚本异常/关键依赖不可用）。
+
 ### `runs/YYYY-MM-DD.json`
 
 ```json

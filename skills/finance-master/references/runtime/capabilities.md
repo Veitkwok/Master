@@ -87,7 +87,7 @@ watchlist 实测名：`Favorites`、`ETFs`、`Assets`、`Nasdaq-QQQ`、`Candidat
 | IBKR watchlist | `get_watchlists`（列表）、`get_watchlist`（单表） |
 | X 读取 | `search_posts_all`（支持 `from:`）、`get_users_posts` |
 | Schwab | `finance_list_portfolio_holdings`（Plaid 只读） |
-| Web | `tavily_search` |
+| Web | `tavily_search`、`WebFetch`（WebFetch 优先用于 stockanalysis/发行商页；curl 可能被站点拦截） |
 | Hindsight | `get_bank`、`recall`、`sync_retain` |
 
 这些只是当前 Bot 的映射示例；代码/契约仍按能力调用，工具名变化时以探测为准。

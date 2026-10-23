@@ -39,6 +39,9 @@ Candidate 提议: NVDA 14日3次/2账号/high → 回复确认后写入
 
 - `运行:` 行必须写 run 状态（succeeded/partial/failed）+ partial 原因（Hindsight/估值/
   Web 缺失/审批），不要只写"成功"；**没有这一行 = 摘要不合格，重写**。
+- 状态定义：`succeeded` = 本轮计划的输出都完整（无 target null 因缺数据、无关键 connector down）；
+  `partial` = 跑完但至少一张卡 target/字段缺失或 connector down；`failed` = run 中止。
+  **有缺口一律 partial**，不能写 succeeded。
 - 持仓卡加两行：`集中度: top2 同主题 X% ⚠️`（≥80%）与
   `⚠️ 接近失效: 差 X%（连续 3 日中的第 N 日）`（≤1% 时）。
 - 目标价 null 的卡要写明缺什么（例：`缺 peers 倍数 → 可比法 blocked`）。

@@ -38,11 +38,28 @@ GOOD_STOCK = {
     "fundamentals_web": {
         "shares_diluted": 1_000_000,
         "net_debt": 0,
+        "revenue_ttm": 500_000_000,
+        "fcf_ttm": 80_000_000,
         "eps_ttm": 2.0,
         "peers": [
             {"symbol": "A", "multiples": {"pe": 20.0}},
             {"symbol": "B", "multiples": {"ev_sales": 3.0}},
             {"symbol": "C", "multiples": {"ev_ebitda": 9.0}},
+        ],
+    },
+}
+
+COMPS_STOCK = {
+    "security_type": "STK",
+    "quote": {"last": 100.0},
+    "fundamentals_web": {
+        "shares_diluted": 1_000_000,
+        "net_debt": 10_000_000,
+        "revenue_ttm": 500_000_000,
+        "peers": [
+            {"symbol": "A", "multiples": {"ev_sales": 3.0}},
+            {"symbol": "B", "multiples": {"ev_sales": 4.0}},
+            {"symbol": "C", "multiples": {"ev_sales": 5.0}},
         ],
     },
 }
@@ -55,7 +72,10 @@ def main() -> int:
     cases.append(("incomplete stock -> 8", rc == 8 and out.get("status") == "incomplete"))
 
     rc, out = run(job({"VST": GOOD_STOCK}))
-    cases.append(("complete stock -> 0", rc == 0 and out.get("status") == "ok"))
+    cases.append(("DCF route -> 0", rc == 0 and out.get("status") == "ok"))
+
+    rc, out = run(job({"MOS": COMPS_STOCK}))
+    cases.append(("comps route -> 0", rc == 0 and out.get("status") == "ok"))
 
     rc, out = run(job({"SILJ": {"security_type": "ETF", "quote": {"last": 10.0}}}))
     cases.append(("ETF without NAV -> 8", rc == 8 and out.get("status") == "incomplete"))

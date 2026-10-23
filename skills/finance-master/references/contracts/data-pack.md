@@ -117,9 +117,18 @@ Bot 写完 job 后先跑固定命令；脚本在**调用 DeepSeek 之前**校验
 | 个股 | `quote.last`；`fundamentals_web.shares_diluted > 0`；`.net_debt`（可 0/负）；`.eps_ttm` 或 `.revenue_ttm` 或 `.ebitda_ttm` 至少一个；`.peers` ≥3 家且每家 `multiples` 至少一个数值（pe/fwd_pe/ev_sales/ev_ebitda） |
 | ETF | `quote.last`；`fundamentals_web.etf_issuer.nav`（发行商 NAV） |
 
+判定标准是"**至少一条估值路线完整**"（不是字段拼盘）：
+
+- **DCF 路线**：`fcf_ttm` + `shares_diluted` + `net_debt` + `revenue_ttm` 都有；
+- **可比路线**：目标指标 + **≥3 家带对应倍数的 peers**
+  （`eps_ttm` ↔ `pe`；`revenue_ttm` ↔ `ev_sales`；`ebitda_ttm` ↔ `ev_ebitda`）。
+
 不齐 → 脚本 **exit 8**，stdout 返回 `{"status":"incomplete","missing":[{"ticker":"VST","fields":[...]}]}`，
 **不消耗 API token**。Bot 按缺失清单补 Web 采集 → 重写 job → 重跑固定命令；最多 2 次。
 仍不齐 → job 加 `"allow_incomplete": true` 再跑一次，worker 允许返回 partial/null（写明 gaps）。
+
+同业**分散本身不算 blocked**：可比法照算 median 与区间，区间太宽时标 `wide` 并降置信度
+（见 `decisions/target.md` §2.1）。
 
 `positions` / `watchlists` 是全局组（watchlist 名以连接器返回为准，大小写/单复数不敏感）：
 

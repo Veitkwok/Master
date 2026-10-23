@@ -38,7 +38,8 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
    - IBKR：resolve 合约 → 现价/快照 → 60–90 日线（MA/RSI）→ 四张 watchlist（只读）；
    - 先读 `state/peers/YYYY-MM-DD.json`、`state/fundamentals/YYYY-MM-DD.json`
      同日缓存：命中就直接合并进数据包，不重复查；未命中再 Web 查。
-   - Web：**逐票单独查**（不要把三只票合并成一次查询），每票 2–3 次：
+   - Web：**逐票单独查**（不要把三只票合并成一次查询），每票 2–3 次
+     （stockanalysis/发行商页优先用 `WebFetch`；curl 可能被站点拦截）：
      ①股票统计页：`shares_diluted`、`net_debt`、`eps_ttm`/`revenue_ttm`、FCF；
      ②**≥3 家 peers 的估值倍数**（PE/Fwd PE/EV-Sales/EV-EBITDA，带来源与 asof）；
      ③ETF 加发行商页（NAV/折溢价/费率/持仓）。查到的原始值写进数据包，并缓存到
