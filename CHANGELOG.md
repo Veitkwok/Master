@@ -1,5 +1,22 @@
 # CHANGELOG · Master pack
 
+## 1.0.13 — 2026-10-24（Day 0/1 全天测试反馈）
+
+- 可选缺口清理扩大：`fields_gap` 中含 `wacc`（含 `dcf.wacc` 等变体）与 `social_x*` 一律清掉，
+  `limiting` 里的 WACC 噪音也清掉（原本只按前缀匹配，漏了 KOL routine 的写法）。
+- target 优先级改为：**worker DCF → 脚本 computed_comps → 可溯源 worker comps → null**；
+  worker 的 comps_range 不可溯源时直接作废（Day 1 有 3 次此类更正）。
+- 卡必填 `target.source`；买入硬校验：重算 upside，`BUY ≥20%`、`ADD ≥15%`，
+  与卡面差 >0.5pp 视为不合格卡（Day 0 NVDA +16.8% 被标 BUY 的问题）。
+- 每张最终卡都要 `sync_retain`；run 记录 `retained_cases[]`（Day 0 只写 2/9 的问题）。
+- Candidate 确认写入后同步 `pending_candidates`（confirmed/written_at/written_to），
+  已存在于 Candidate 的票不再提议（Day 1 NVDA 状态未同步的问题）。
+- 时间戳语义写死：`asof` = run started、`price_asof` = 行情时点；记录/文件差 >2 分钟算 bug。
+- 新增 `out/raw/` 保存每次 routine 的 stdout 与 exit；`out/` 保留 90 天（Day 0 报告丢失）。
+- 数据新鲜度：财报前后 3 天强制刷新基本面；跨日缓存默认重抓。
+- x-adv：t.co 短链先展开再判断。
+- 新增 `dev/tests/test_cleanup.py`。
+
 ## 1.0.12 — 2026-10-23（NBIS 远目标降级）
 
 - `computed_comps`：**|upside| > 50%** 一律降为 `very_wide`（cap C），不再给 `ok/B`

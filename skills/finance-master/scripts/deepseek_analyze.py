@@ -458,6 +458,34 @@ def validate(obj: object) -> list[str]:
 # ---------------------------------------------------------------------------
 # main path
 # ---------------------------------------------------------------------------
+def clean_optional(result: dict) -> None:
+    """Drop optional gaps/limiting noise the model keeps adding (social_x / WACC)."""
+    warnings = []
+    for t in result.get("tickers", []):
+        if not isinstance(t, dict):
+            continue
+        sym = t.get("symbol")
+        gaps = t.get("fields_gap")
+        if isinstance(gaps, list):
+            kept = []
+            for g in gaps:
+                low = str(g).lower()
+                if "wacc" in low or low.startswith("social_x"):
+                    continue
+                kept.append(g)
+            if len(kept) != len(gaps):
+                t["fields_gap"] = kept
+                warnings.append(f"dropped optional gaps for {sym}: social_x/wacc")
+        limiting = t.get("limiting")
+        if isinstance(limiting, list):
+            kept = [x for x in limiting if "wacc" not in str(x).lower()]
+            if len(kept) != len(limiting):
+                t["limiting"] = kept
+                warnings.append(f"dropped WACC noise from limiting for {sym}")
+    if warnings:
+        result.setdefault("warnings", []).extend(warnings)
+
+
 def run_analysis(job: dict, key: str) -> int:
     mode = job_mode(job)
     pack = job_payload(job)
@@ -522,18 +550,7 @@ def run_analysis(job: dict, key: str) -> int:
             t["symbol"] = t["ticker"]
             normalized.append(str(t["symbol"]))
         t.pop("ticker", None)
-    optional_gap_prefixes = ("social_x", "fundamentals_web.wacc", "wacc_source_page")
-    for t in result.get("tickers", []):
-        if not isinstance(t, dict):
-            continue
-        gaps = t.get("fields_gap")
-        if isinstance(gaps, list):
-            kept = [g for g in gaps if not str(g).startswith(optional_gap_prefixes)]
-            removed = len(gaps) - len(kept)
-            if removed:
-                t["fields_gap"] = kept
-                result.setdefault("warnings", []).append(
-                    f"dropped optional gaps for {t.get('symbol')}: social_x/wacc" )
+    clean_optional(result)
     if normalized and "warnings" not in result:
         result["warnings"] = []
     if normalized:

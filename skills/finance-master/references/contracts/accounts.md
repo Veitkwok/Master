@@ -66,6 +66,12 @@
 输出格式与"只提议、确认后写"的流程见 `contracts/advice-card.md` §6。
 写入动作只在用户在场的对话里执行；routine 只提议。
 
+**确认写入后的状态同步**（必须）：
+- 写入 IBKR Candidate 成功后，把 `state/pending_candidates.json` 里该票改为
+  `confirmed: true` + `written_at` + `written_to`，并从后续提议中排除；
+- 每次提议前重读 IBKR Candidate 列表：已经在表里的票不再提议；
+- 用户拒绝的票标 `rejected_at`，14 天内不再提议。
+
 ---
 
 ## 5. 提及日志（供频率统计）

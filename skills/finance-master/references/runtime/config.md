@@ -52,6 +52,10 @@ comps_very_wide_width: 1.0            # (high-low)/base > 1.0 -> very_wide（C�
 comps_very_wide_upside: 0.5           # |upside| > 50% -> very_wide（C）
 comps_implausible_ratio: [0.2, 5.0]   # base/现价 超出区间 -> insufficient（不可用）
 target_quality_gate: B                # 触发 BUY/TRIM/SELL 的 target 最低质量
+target_priority: [worker_dcf, script_comps, worker_comps]  # worker comps 仅可溯源时
+fundamentals_cache_hours: 24          # 跨日重抓
+earnings_refresh_days: 3              # 财报前后 3 天强制刷新
+save_stdout: true                     # out/raw/ 保留原样输出
 trim_sell_min_confidence: B           # target 触发的 TRIM/SELL 还需整体 grade ≥B
 
 # Candidate

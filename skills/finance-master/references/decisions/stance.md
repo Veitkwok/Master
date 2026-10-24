@@ -46,6 +46,9 @@ user_cash        用户本轮说出的可投现金（无则 null）
 - **target 触发的 TRIM/SELL 还要求卡片整体 confidence ≥B**；若 grade=C（例如极端 RSI、
   证据弱），即使现价 ≥ target，也只能 `HOLD`+写"target 已到但置信不足，转复核"，
   不能自动减仓/卖出。
+- **买入硬校验**：出卡前必须用 `upside = target.base / last − 1` 重算一次；
+  `BUY` 要求 `upside ≥ 20%`，`ADD` 要求 `≥15%`；不满足就只能 `WATCH/HOLD`。
+  卡上 `upside_pct` 必须与重算结果一致（差 >0.5pp 视为不合格卡，重写）。
 - **纯社交证据（grade C）**：永远不 `BUY`；未持有 → `WATCH`，已持有 → `HOLD`。
 - **ETF**：产品/角色判断来自 `etf` 模块（M1–M7）；`target` 无 NAV/band 依据时
   不得 `BUY`，最多 `WATCH`。

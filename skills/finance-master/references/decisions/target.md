@@ -65,10 +65,15 @@ computed_comps: {lens, base, low, high, peers_used, peers_count,
                  confidence_cap: B|C, upside_pct}
 ```
 
-Bot 收口顺序：
-1. worker 的 `valuation.dcf_fair/comps_range` 有效 → 用它；
-2. 否则用 `computed_comps`（basis 写 `comps(script)`，并在卡上注明脚本计算）；
-3. 都没有 → target null。
+Bot 收口顺序（v1.0.13 起）：
+1. worker 的 `valuation.dcf_fair` 有效 → 用它（DCF）；
+2. 否则用脚本 `computed_comps`（basis 写 `comps(script)`，卡上注明脚本计算）——
+   **优先于 worker 的 comps_range**；
+3. 只有在脚本没有可用 computed_comps 时，才接受 worker 的 `comps_range`，
+   且必须能列出 peer 倍数与计算式（不可溯源 → 作废）；
+4. 都没有 → target null。
+
+卡字段：`target_source: worker_dcf | script_comps | worker_comps | null`。
 
 `computed_comps.quality` 判定（脚本执行，写进 stdout）：
 

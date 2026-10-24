@@ -31,6 +31,7 @@ target:
   low: 205.00
   high: 243.00
   basis: dcf_blend | dcf | comps | etf_band | null
+  source: worker_dcf | script_comps | worker_comps | null
   horizon: 6-12m
 upside_pct: 22.8
 sell_plan:

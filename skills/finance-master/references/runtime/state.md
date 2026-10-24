@@ -22,12 +22,21 @@
 ├── out/                              # 每日摘要与卡的文件版
 │   ├── YYYY-MM-DD-<routine>.md
 │   └── cards/YYYY-MM-DD/<SYM>.md
+├── out/raw/                          # 每次 routine 的 stdout/exit（调试）
+│   ├── YYYY-MM-DD-<routine>.stdout.json
+│   └── YYYY-MM-DD-<routine>.exit
 └── packs/                            # 本轮数据包（调试/复现；可清理）
 ```
 
 ---
 
 ## 2. 文件 schema
+
+### 时间戳语义（v1.0.13 起）
+
+- `started`：S0 开始时刻；`finished`：S8 结束时刻；都用真实时钟、ISO+08；
+- 卡片 `asof` = 本 run 的 `started`（不是收尾时间）；`price_asof` = 行情时点；
+- 禁止先跑完后补写"now"当 asof；记录时间与文件 mtime 差 >2 分钟视为时间戳 bug。
 
 ### 状态语义（runs / 摘要共用）
 
@@ -128,6 +137,7 @@
 - 每周清理：`packs/` 保留 7 天；`out/` 保留 90 天；`runs/` 保留 90 天。
 - 不把状态写进技能目录（防止重装丢失/污染 skill 加载）。
 - 状态文件不包含密钥、完整账户号；持仓只保留卡需要的字段。
+- `out/`、`out/raw/`、`runs/` 保留 90 天（不要每天清空；Day 0 报告丢失就是反例）。
 
 ---
 

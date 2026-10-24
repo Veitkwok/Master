@@ -42,6 +42,9 @@
   （如「连续 3 日收盘低于」/「放量收穿」）；不要套用新买入的 15% 入场止损。
 - 每票 `fields_gap` 用点路径（例：`peers.multiples`, `fundamentals_web.fcf_ttm`），
   方便 Bot 决定下一轮补什么。
+- `valuation.comps_range` 只在你能**列出每家 peer 的倍数与计算式**时才给；否则写 null，
+  由脚本 `computed_comps` 提供（Bot 优先用脚本结果）。文字里不要做倍数大小比较，
+  交给确定性计算。
 - 如果 job 带 `allow_incomplete: true`（Bot 已尝试补采仍缺）：按现有数据做 best effort，
   `valuation.status` 标 partial/blocked，`fields_gap` 写清缺什么，**不要编数字**。
 
