@@ -12,13 +12,16 @@ spec.loader.exec_module(worker)  # type: ignore[union-attr]
 result = {"tickers": [
     {"symbol": "NVDA", "fields_gap": ["wacc", "fundamentals_web.wacc", "dcf.wacc",
                                       "social_x.posts", "peers.multiples"],
-     "limiting": ["无 WACC 来源页，用引擎默认", "负 FCF"]},
+     "limiting": ["无 WACC 来源页，用引擎默认", "负 FCF"],
+     "valuation": {"fields_gap": ["数据包未给 WACC", "peers.multiples"]}},
     {"symbol": "MOS", "fields_gap": [], "limiting": []},
 ]}
 worker.clean_optional(result)
 gaps = result["tickers"][0]["fields_gap"]
 limiting = result["tickers"][0]["limiting"]
-ok = gaps == ["peers.multiples"] and limiting == ["负 FCF"] and result["warnings"]
+nested = result["tickers"][0]["valuation"]["fields_gap"]
+ok = (gaps == ["peers.multiples"] and limiting == ["负 FCF"]
+      and nested == ["peers.multiples"] and result["warnings"])
 print(("PASS " if ok else "FAIL ") + "cleanup removes wacc/social_x variants")
 print("1/1 passed" if ok else "0/1 passed")
 raise SystemExit(0 if ok else 1)

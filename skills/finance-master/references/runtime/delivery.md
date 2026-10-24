@@ -10,7 +10,8 @@
 1. **聊天摘要**（≤ 60 行）：状态行 + 卡（≤2 张）+ 观察 + Candidate 提议 + 缺口 + 页脚；
 2. **文件**：`/workspace/master/out/YYYY-MM-DD-<routine>.md`（完整摘要 + 卡）；
 3. **卡片文件**：`/workspace/master/out/cards/YYYY-MM-DD/<SYM>.md`；
-4. **原样保留**：`out/raw/YYYY-MM-DD-<routine>.stdout.json` + `.exit`（核对 symbol/gap 噪音用）；
+4. **原样保留**：`out/raw/<job_id>.stdout.json` + `.exit`（**由 deepseek_analyze.py 自己写**，
+   v1.0.14 起；Bot 不需要手工重定向/保存）；
 5. **状态**：`state/runs`、`state/advice`、`state/mentions` 已写。
 
 时间戳：摘要里的 `asof` 用 run `started`，`price_asof` 用行情时点；不要用收尾时间。

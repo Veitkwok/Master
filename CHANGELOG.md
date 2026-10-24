@@ -1,5 +1,13 @@
 # CHANGELOG · Master pack
 
+## 1.0.14 — 2026-10-24（v1.0.13 验证收尾）
+
+- 可选缺口清理改为**递归**：嵌套 `valuation.fields_gap` 里的 `dcf.wacc` / 「数据包未给 WACC」
+  等也会被清掉（v1.0.13 只清顶层）。
+- `out/raw/<job_id>.stdout.json|.exit` 改为**脚本自己写**（不再依赖 Bot 重定向），
+  exit 8 与成功都写。
+- `dev/tests/test_cleanup.py` 覆盖嵌套 valuation gap。
+
 ## 1.0.13 — 2026-10-24（Day 0/1 全天测试反馈）
 
 - 可选缺口清理扩大：`fields_gap` 中含 `wacc`（含 `dcf.wacc` 等变体）与 `social_x*` 一律清掉，

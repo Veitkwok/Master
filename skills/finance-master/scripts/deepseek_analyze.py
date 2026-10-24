@@ -40,6 +40,7 @@ import hashlib
 import json
 import os
 import random
+import re
 import sys
 import time
 import urllib.error
@@ -458,32 +459,58 @@ def validate(obj: object) -> list[str]:
 # ---------------------------------------------------------------------------
 # main path
 # ---------------------------------------------------------------------------
-def clean_optional(result: dict) -> None:
-    """Drop optional gaps/limiting noise the model keeps adding (social_x / WACC)."""
-    warnings = []
-    for t in result.get("tickers", []):
-        if not isinstance(t, dict):
+def _clean_optional_list(items: list) -> tuple[list, int]:
+    kept = []
+    for item in items:
+        low = str(item).lower()
+        if "wacc" in low or low.startswith("social_x"):
             continue
-        sym = t.get("symbol")
-        gaps = t.get("fields_gap")
-        if isinstance(gaps, list):
-            kept = []
-            for g in gaps:
-                low = str(g).lower()
-                if "wacc" in low or low.startswith("social_x"):
-                    continue
-                kept.append(g)
-            if len(kept) != len(gaps):
-                t["fields_gap"] = kept
-                warnings.append(f"dropped optional gaps for {sym}: social_x/wacc")
-        limiting = t.get("limiting")
-        if isinstance(limiting, list):
-            kept = [x for x in limiting if "wacc" not in str(x).lower()]
-            if len(kept) != len(limiting):
-                t["limiting"] = kept
-                warnings.append(f"dropped WACC noise from limiting for {sym}")
-    if warnings:
-        result.setdefault("warnings", []).extend(warnings)
+        kept.append(item)
+    return kept, len(items) - len(kept)
+
+
+def clean_optional(result: dict) -> None:
+    """Recursively drop optional gaps/limiting noise (social_x / WACC), incl. nested
+    valuation.fields_gap. Works for every routine, not only holdings."""
+    removed = 0
+
+    def walk(node) -> None:
+        nonlocal removed
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key in {"fields_gap", "limiting"} and isinstance(value, list):
+                    kept, n = _clean_optional_list(value)
+                    if n:
+                        node[key] = kept
+                        removed += n
+                elif isinstance(value, (dict, list)):
+                    walk(value)
+        elif isinstance(node, list):
+            for item in node:
+                if isinstance(item, (dict, list)):
+                    walk(item)
+
+    walk(result)
+    if removed:
+        result.setdefault("warnings", []).append(f"cleaned optional gaps/limiting: {removed} item(s)")
+
+
+def _safe_job_id(job: dict) -> str:
+    raw = str(job.get("job_id") or "job")
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "_", raw)[:80]
+    return safe or "job"
+
+
+def write_raw(job: dict, payload: dict, exit_code: int) -> None:
+    try:
+        raw_dir = OUT_DEFAULT / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        base = _safe_job_id(job)
+        (raw_dir / f"{base}.stdout.json").write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (raw_dir / f"{base}.exit").write_text(f"{exit_code}\n", encoding="utf-8")
+    except OSError as exc:  # never fail the run because of raw logging
+        print(f"raw log skipped: {exc}", file=sys.stderr)
 
 
 def run_analysis(job: dict, key: str) -> int:
@@ -491,13 +518,15 @@ def run_analysis(job: dict, key: str) -> int:
     pack = job_payload(job)
     missing = check_valuation_inputs(pack)
     if missing and not job.get("allow_incomplete"):
-        sys.stdout.write(json.dumps({
+        payload8 = {
             "schema": "master.deepseek.jobcheck/v1",
             "status": "incomplete",
             "message": "valuation inputs missing: fix the job (Web collect) and rerun; "
                        "set allow_incomplete=true only after retry budget is spent",
             "missing": missing,
-        }, ensure_ascii=False) + "\n")
+        }
+        sys.stdout.write(json.dumps(payload8, ensure_ascii=False) + "\n")
+        write_raw(job, payload8, 8)
         print("jobcheck: incomplete -> exit 8 (no API call)", file=sys.stderr)
         return 8
     thinking = os.environ.get("DEEPSEEK_THINKING") or ("off" if mode == "routine" else "on")
@@ -639,6 +668,7 @@ def run_analysis(job: dict, key: str) -> int:
         "cache": result["cache"],
         "result_path": result["result_path"],
     }
+    write_raw(job, out, 0)
     sys.stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
     print(f"worker: mode={mode} model={result['model']} thinking={result['thinking']} "
           f"latency_ms={result['latency_ms']} usage={json.dumps(result['usage'])}", file=sys.stderr)

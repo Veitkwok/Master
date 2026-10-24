@@ -21,10 +21,8 @@
 │   └── .probe                        # 可写探测
 ├── out/                              # 每日摘要与卡的文件版
 │   ├── YYYY-MM-DD-<routine>.md
-│   └── cards/YYYY-MM-DD/<SYM>.md
-├── out/raw/                          # 每次 routine 的 stdout/exit（调试）
-│   ├── YYYY-MM-DD-<routine>.stdout.json
-│   └── YYYY-MM-DD-<routine>.exit
+│   ├── cards/YYYY-MM-DD/<SYM>.md
+│   └── raw/<job_id>.stdout.json|.exit  # 脚本自己写（v1.0.14 起，调试用）
 └── packs/                            # 本轮数据包（调试/复现；可清理）
 ```
 
