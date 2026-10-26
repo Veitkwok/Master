@@ -26,7 +26,9 @@
 数据: IBKR✅ X✅(1 read) Hindsight❌ Schwab skip DeepSeek✅(cache 29k hit)
 结果: 3 只候选 → 2 张卡 + 1 只观察
 
+运行: succeeded · partial（原因：…）        ← 每张卡第一行
 ## NVDA · 买入（新买）
+asof 2026-10-23 07:34 +08 | 价格时点 2026-10-22 收盘（IBKR）
 现价 $182.40 | 买入上限 $186.00 | 目标 $224（区间 $205–$243，6–12m）
 卖出: $224 减 1/3 → $243 再减 1/3 → 失效 $158 全出
 证据: B（IBKR+Web）| trap green | priced_in partial
@@ -47,8 +49,11 @@ Candidate 提议: NVDA 14日3次/2账号/high → 回复确认后写入
   `partial` = 跑完但至少一张卡 target/字段缺失或 connector down；`failed` = run 中止。
   **有缺口一律 partial**，不能写 succeeded。
 - 目标价 basis 为脚本回退时写 `comps(script)`，并注明"脚本按 peers 中位数计算"。
-- 持仓卡加两行：`集中度: top2 同主题 X% ⚠️`（≥80%）与
-  `⚠️ 接近失效: 差 X%（连续 3 日中的第 N 日）`（≤1% 时）。
+- **每张卡**第一行固定 `运行: <status> · <reason>`（不只摘要里）。
+- **持仓卡**加两行：`集中度: top2 同主题 X% ⚠️`（≥80%）与
+  `接近失效: 未触发` / `⚠️ 接近失效: 差 X%（连续 3 日中的第 N 日）`（≤1%）。
+- **时间戳**：卡片 `asof` = 卡片生成/写盘时刻（与文件 mtime 差 ≤2 分钟）；
+  不要用 run started/finished 当 asof；`price_asof` 才是行情时点。
 - 目标价 null 的卡要写明缺什么（例：`缺 peers 倍数 → 可比法 blocked`）。
 字段顺序固定，方便一眼扫完。
 

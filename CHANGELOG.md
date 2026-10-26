@@ -1,5 +1,14 @@
 # CHANGELOG · Master pack
 
+## 1.0.15 — 2026-10-26（观察期 asof 失败 + 卡格式统一）
+
+- **修正时间戳语义（上一版规则写反了）**：卡片 `asof` = 卡片生成/写盘时刻，与文件 mtime
+  差 ≤2 分钟；run `started`/`finished` 只进 run 记录；禁止用 run 起止时间当卡 asof。
+- 卡格式统一：**每张卡第一行**固定 `运行: <status> · <reason>`；持仓卡必须带
+  `集中度:` 与 `接近失效:` 行（未触发写"未触发"）。
+- `run_status` / `run_status_reason` 加入卡字段必填；卡校验清单同步。
+- 摘要模板与 runbook 自检项更新。
+
 ## 1.0.14 — 2026-10-24（v1.0.13 验证收尾）
 
 - 可选缺口清理改为**递归**：嵌套 `valuation.fields_gap` 里的 `dcf.wacc` / 「数据包未给 WACC」

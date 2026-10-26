@@ -105,7 +105,8 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
 - [ ] 每只卡票有 CONFIDENCE_BLOCK + CHALLENGE_NODES；
 - [ ] 买入卡有 entry_limit、target、invalidation、confidence ≥ B；
 - [ ] 卖出/减仓卡有触发原因；
-- [ ] 摘要第一行有 `运行: <status> · <partial 原因>`；
+- [ ] 摘要与**每张卡**第一行都有 `运行: <status> · <partial 原因>`；
+- [ ] 卡片 `asof` 是生成时刻、与文件 mtime 差 ≤2 分钟（不是 run started）；
 - [ ] 每张卡目标价有值，或写明缺什么导致 null；
 - [ ] 状态三处已写；摘要含"未下单"；
 - [ ] 没有写 watchlist / 没有编数据。

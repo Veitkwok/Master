@@ -30,11 +30,14 @@
 
 ## 2. 文件 schema
 
-### 时间戳语义（v1.0.13 起）
+### 时间戳语义（v1.0.15 起 · 修正）
 
-- `started`：S0 开始时刻；`finished`：S8 结束时刻；都用真实时钟、ISO+08；
-- 卡片 `asof` = 本 run 的 `started`（不是收尾时间）；`price_asof` = 行情时点；
-- 禁止先跑完后补写"now"当 asof；记录时间与文件 mtime 差 >2 分钟视为时间戳 bug。
+- **run 记录**：`started`（S0 开始）/ `finished`（S8 结束），真实时钟、ISO+08；
+- **卡片 `asof` = 卡片生成/写盘时刻**：写卡前一刻取时间，立刻写文件；
+  `asof` 与文件 mtime 差必须 **≤2 分钟**；**禁止**用 run `started`/`finished` 当卡 asof，
+  也禁止收尾后补写"now"；
+- `price_asof` = 行情时点（IBKR 报价/收盘/盘后）；
+- 卡面第一行固定 `运行: <status> · <reason>`；持仓卡另带 `集中度:` / `接近失效:` 行。
 
 ### 状态语义（runs / 摘要共用）
 

@@ -9,7 +9,9 @@
 
 ```yaml
 card_version: 1
-asof: 2026-10-23T07:34:00+08:00
+asof: 2026-10-23T07:34:00+08:00     # 卡片生成/写盘时刻；与文件 mtime 差 ≤2 分钟
+run_status: succeeded | partial | failed
+run_status_reason: "partial 原因（succeeded 写 null）"
 price_asof: "2026-10-22 close ET / IBKR"
 routine: primary_babybus | primary_haochi | primary_balder | supplement | holdings | adhoc
 symbol: NVDA
@@ -70,6 +72,7 @@ draft_created: false
 ## 2. 卡片展示格式（聊天里）
 
 ```text
+运行: succeeded · partial（原因：…）        ← 每张卡第一行都必须有
 ## NVDA · 买入候选 · primary_babybus
 asof 2026-10-23 07:34 +08 | 价格时点 2026-10-22 收盘（IBKR）
 现价 $182.40 | 持仓：IBKR 12 股 @ $171.20（+6.5%）| Schwab 无
@@ -80,14 +83,15 @@ stance: 买入（新买）| 证据 B | trap green | priced_in partial
 失效条件: 下季指引下调 / 连续 3 日收盘 < 50 日线 / 跌破 $158
 复核: 下次财报（2027-02 前后）或 90 天
 风险: 客户集中度；10Y +50bp → DCF −8% | 重叠: 已持 QQQ
+集中度: n/a（未持有）| 接近失效: 未触发
 缺口: 无 | 分析: deepseek
 未下单 · 未写嘉信 · 本卡不构成委托
 ```
 
 ## 3. 必填与允许缺失
 
-- 必填：`asof`、`symbol`、`stance`、`last`、`position.context`、`confidence`、
-  `order_sent:false`、`schwab_trade:forbidden`。
+- 必填：`asof`、`run_status`、`symbol`、`stance`、`last`、`position.context`、
+  `confidence`、`order_sent:false`、`schwab_trade:forbidden`。
 - 条件必填：
   - `BUY / ADD`：`entry_limit`、`target.base`、`sell_plan.invalidation_price`、
     `sell_plan.invalidation_thesis`、`confidence ≥ B`；
@@ -108,6 +112,10 @@ stance: 买入（新买）| 证据 B | trap green | priced_in partial
 - [ ] X 纯社交证据 → grade 不得 ≥ B；
 - [ ] `order_sent`/`draft_created` 恒为 false；`schwab_trade` 恒为 forbidden；
 - [ ] 每个数字有时间点与来源；
+- [ ] `asof` 是卡片生成时刻，且与文件 mtime 差 **≤2 分钟**（先用 run started/finished 当 asof = 不合格）；
+- [ ] 卡片第一行有 `运行: <status> · <reason>`（每张卡都要，不只摘要）；
+- [ ] 持仓卡（context=ibkr/schwab/both）有 `集中度:` 与 `接近失效:` 行
+      （未触发写"接近失效: 未触发"；≤1% 写"⚠️ 接近失效: 差 X%"）；
 - [ ] 同票同日只有一张卡（查 `advice/` 状态）。
 
 ## 5. 每日摘要格式
