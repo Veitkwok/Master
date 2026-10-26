@@ -95,5 +95,6 @@
 ## 7. 状态与失败
 
 - 写 `state/runs`（`routine: holdings`）、`state/advice`（仅出卡仓）、`out/YYYY-MM-DD-holdings.md`。
+- 失效确认只用 **RTH 收盘**；盘前/盘后/夜盘的跌破只提示，不计入 3 日确认。
 - IBKR down → 输出"持仓不可用"，不编持仓；Schwab down → 只按 IBKR 判断并注明。
 - 失败不重试；下一交易日补跑。

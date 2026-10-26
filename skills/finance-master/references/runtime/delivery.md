@@ -45,6 +45,8 @@ Candidate 提议: NVDA 14日3次/2账号/high → 回复确认后写入
 
 - `运行:` 行必须写 run 状态（succeeded/partial/failed）+ partial 原因（Hindsight/估值/
   Web 缺失/审批），不要只写"成功"；**没有这一行 = 摘要不合格，重写**。
+- **别把 target 的 cap 写成 confidence**：卡上 `证据: B` 是置信度；
+  target 被 very_wide 限住时另起一行 `目标质量: very_wide（cap C，仅参考，不交易）`。
 - 状态定义：`succeeded` = 本轮计划的输出都完整（无 target null 因缺数据、无关键 connector down）；
   `partial` = 跑完但至少一张卡 target/字段缺失或 connector down；`failed` = run 中止。
   **有缺口一律 partial**，不能写 succeeded。

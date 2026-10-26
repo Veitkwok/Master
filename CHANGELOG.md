@@ -1,5 +1,14 @@
 # CHANGELOG · Master pack
 
+## 1.0.17 — 2026-10-26（补齐 v1.0.16 内容）
+
+- v1.0.16 因锚点字符串不匹配只发布了版本号；本版补齐：
+  - 卡字段 `target.quality` / `target.confidence_cap` 独立于 `confidence`；
+    卡面禁止把 target 的 cap 写成"证据 C"（VST「证据 B……显示 C」问题）。
+  - 失效 3 日确认明确为 **RTH 收盘**；盘前/盘后/夜盘跌破只提示，不计入确认
+    （CRWV 夜盘 $52.35 不触发，等 RTH 收盘）。
+  - delivery / runbook 措辞与自检同步。
+
 ## 1.0.15 — 2026-10-26（观察期 asof 失败 + 卡格式统一）
 
 - **修正时间戳语义（上一版规则写反了）**：卡片 `asof` = 卡片生成/写盘时刻，与文件 mtime
