@@ -28,6 +28,12 @@
 
 ---
 
+## 2.1 routine 里不要重定向 stdout
+
+- 固定命令直接运行即可；**不要**在 routine 里写 `> /workspace/master/out/raw/...` 之类的
+  重定向。raw 文件由 `deepseek_analyze.py` 自己原子写入（`.worker.stdout.json`）。
+- `job_id` / `asof` 用 S0 的真实开始时间，不要用排期时刻。
+
 ## 3. 五个 routine 的 prompt（直接复制）
 
 ### 2.1 primary_babybus

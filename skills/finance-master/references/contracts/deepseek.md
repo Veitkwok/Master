@@ -102,7 +102,10 @@ job 文件（Bot 写）：
 - 脚本会把 worker 的 `ticker` 归一成 `symbol` 并记 warning；stdout/result/card 统一 `symbol`。
 - 脚本**递归**清理可选 `fields_gap`/`limiting`（含嵌套 `valuation.fields_gap` 中的
   `social_x.*`、任意 `wacc` 变体），并把清理记录写进 `warnings`。
-- 脚本自动把本次 stdout 与 exit 写入 `out/raw/<job_id>.stdout.json|.exit`（无需 Bot 重定向）。
+- 脚本自动把本次 stdout 与 exit 写入
+  `out/raw/<YYYYMMDD-HHMMSS>-<routine>-<job_id>.worker.stdout.json|.worker.exit`：
+  用脚本实际开始时间命名、原子替换、写前校验是合法 JSON；`.worker.` infix 防止和
+  routine 自己的 stdout 重定向撞名。**routine 不得再重定向 stdout 到 out/raw/**。
 - `computed_comps.quality`：`ok`/`wide`（cap B）、`very_wide`（cap C，不可交易）、
   `insufficient`（base >5× 或 <0.2× 现价，不可用作 target）；多 lens 按质量与 |upside| 选。
 - 长分析不回流 Bot：完整结果写 `out/current.result.json`，Bot 只在 stdout 缺字段时才读。

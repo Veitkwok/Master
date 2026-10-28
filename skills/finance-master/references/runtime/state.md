@@ -22,7 +22,8 @@
 ├── out/                              # 每日摘要与卡的文件版
 │   ├── YYYY-MM-DD-<routine>.md
 │   ├── cards/YYYY-MM-DD/<SYM>.md
-│   └── raw/<job_id>.stdout.json|.exit  # 脚本自己写（v1.0.14 起，调试用）
+│   └── raw/<YYYYMMDD-HHMMSS>-<routine>-<job_id>.worker.stdout.json|.worker.exit
+│                                    # 脚本自己写（v1.0.18 起；原子写、合法 JSON；带 .worker 防撞名）
 └── packs/                            # 本轮数据包（调试/复现；可清理）
 ```
 
@@ -33,6 +34,8 @@
 ### 时间戳语义（v1.0.15 起 · 修正）
 
 - **run 记录**：`started`（S0 开始）/ `finished`（S8 结束），真实时钟、ISO+08；
+- **`job_id` / `asof` 必须用真实开始时间**：S0 开始时取本机时钟，**不得使用排期时间**
+  （例：排期 08:02 但实际 07:56 开始 → job_id/asof 都用 07:56）；
 - **卡片 `asof` = 卡片生成/写盘时刻**：写卡前一刻取时间，立刻写文件；
   `asof` 与文件 mtime 差必须 **≤2 分钟**；**禁止**用 run `started`/`finished` 当卡 asof，
   也禁止收尾后补写"now"；

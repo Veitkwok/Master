@@ -55,8 +55,9 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
 
 ## 4. 分析（fixed command · worker 优先）
 
-1. 按 `contracts/deepseek.md` 组装 job：`job_id` / `mode=routine` / `asof` / `pack=数据包`，
-   写 `/workspace/master/jobs/current.json`。
+1. 按 `contracts/deepseek.md` 组装**全新** job：`job_id` / `mode=routine` / `asof` /
+   `pack=数据包`，覆盖写 `/workspace/master/jobs/current.json`（不复用旧 job 文件）。
+   `job_id` 与 `asof` 都用**本轮真实开始时间**（S0 取本机时钟），不得用排期时刻。
 2. 执行唯一固定命令（逐字）：
    `/usr/bin/python3 -I -B /workspace/master/skill/scripts/deepseek_analyze.py`
 3. **exit 8 = 估值输入不齐**：读 stdout `missing[]`，按字段补 Web 采集，更新 job，重跑

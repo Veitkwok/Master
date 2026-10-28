@@ -53,7 +53,8 @@
    **每只触发分析的仓必须逐票查 Web**：①股票统计页（shares_diluted / net_debt /
    eps 或 revenue / FCF）；②≥3 家 peers 倍数（PE/Fwd PE/EV-Sales/EV-EBITDA，带来源与 asof）；
    ③最新财报/事件。查到的值写进数据包并缓存 `state/fundamentals/`、`state/peers/`。
-2. 写**全新** job 覆盖 `/workspace/master/jobs/current.json`（`mode=routine`，不复用旧 job），执行固定命令
+2. 写**全新** job 覆盖 `/workspace/master/jobs/current.json`（`mode=routine`，不复用旧 job；
+   `job_id`/`asof` 用真实开始时间，不用排期时刻），执行固定命令
    `/usr/bin/python3 -I -B /workspace/master/skill/scripts/deepseek_analyze.py`。
    **exit 8 → 按 missing[] 补采 → 重跑（最多 2 次）**；仍不齐加 `allow_incomplete:true`。
    exit 2–7 或审批卡住 → bot-inline（审批卡住则本 run 记失败、下轮补）。

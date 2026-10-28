@@ -1,5 +1,16 @@
 # CHANGELOG · Master pack
 
+## 1.0.18 — 2026-10-28（raw 文件损坏 + job_id/asof 用排期时间）
+
+- raw 日志彻底防撞：文件名改为
+  `<YYYYMMDD-HHMMSS>-<routine>-<job_id>.worker.stdout.json|.worker.exit`，
+  用脚本**实际开始时间**命名，带 `.worker` infix；原子写（tmp → JSON 校验 → replace），
+  避免与 routine 自己的 stdout 重定向写同一文件导致半个 JSON 拼接。
+- 明确：routine **不得**再把 stdout 重定向进 `out/raw/`。
+- `job_id` / `asof` 必须用 S0 真实开始时间，**不得使用排期时刻**
+  （修 balder 08:02 vs 实际 07:56 的错位）。
+- 新增 `dev/tests/test_raw.py`（合法 JSON/原子/命名防撞）。
+
 ## 1.0.17 — 2026-10-26（补齐 v1.0.16 内容）
 
 - v1.0.16 因锚点字符串不匹配只发布了版本号；本版补齐：

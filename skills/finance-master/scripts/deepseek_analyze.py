@@ -43,6 +43,7 @@ import random
 import re
 import sys
 import time
+from datetime import datetime
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -502,14 +503,36 @@ def _safe_job_id(job: dict) -> str:
 
 
 def write_raw(job: dict, payload: dict, exit_code: int) -> None:
+    """Write a per-run raw copy atomically under out/raw/.
+
+    Filenames use the *actual* local start time of this script (never the planned
+    schedule time or a stale job_id), and a `.worker.` infix so a routine's own
+    stdout redirect (if any) can never collide with these files.
+    """
     try:
         raw_dir = OUT_DEFAULT / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
-        base = _safe_job_id(job)
-        (raw_dir / f"{base}.stdout.json").write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        (raw_dir / f"{base}.exit").write_text(f"{exit_code}\n", encoding="utf-8")
-    except OSError as exc:  # never fail the run because of raw logging
+        now = datetime.now().astimezone()
+        stamp = now.strftime("%Y%m%d-%H%M%S")
+        routine = re.sub(r"[^A-Za-z0-9_.-]", "_", str(job.get("routine") or "routine"))[:40]
+        base = f"{stamp}-{routine}-{_safe_job_id(job)}"
+        payload_path = raw_dir / f"{base}.worker.stdout.json"
+        tmp = raw_dir / f".{base}.worker.stdout.json.tmp"
+        text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+        tmp.write_text(text, encoding="utf-8")
+        # verify the file is valid JSON before publishing it
+        json.loads(tmp.read_text(encoding="utf-8"))
+        tmp.replace(payload_path)
+        (raw_dir / f"{base}.worker.exit").write_text(f"{exit_code}\n", encoding="utf-8")
+        (raw_dir / f"{base}.worker.meta.json").write_text(json.dumps({
+            "job_id": job.get("job_id", ""),
+            "routine": job.get("routine", ""),
+            "exit_code": exit_code,
+            "written_at": now.isoformat(),
+            "job_asof": job.get("asof", ""),
+            "stdout_file": payload_path.name,
+        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    except (OSError, ValueError, json.JSONDecodeError) as exc:  # never fail the run
         print(f"raw log skipped: {exc}", file=sys.stderr)
 
 
