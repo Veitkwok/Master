@@ -46,6 +46,7 @@ job 文件（Bot 写）：
 {
   "schema": "master.deepseek.job/v1",
   "job_id": "20261023-primary_babybus-0730",
+  "routine": "primary_babybus",       # 必填；raw 文件名用它
   "mode": "routine | deep",
   "asof": "2026-10-23T07:30:00+08:00",
   "locale": "zh",
@@ -103,7 +104,8 @@ job 文件（Bot 写）：
 - 脚本**递归**清理可选 `fields_gap`/`limiting`（含嵌套 `valuation.fields_gap` 中的
   `social_x.*`、任意 `wacc` 变体），并把清理记录写进 `warnings`。
 - 脚本自动把本次 stdout 与 exit 写入
-  `out/raw/<YYYYMMDD-HHMMSS>-<routine>-<job_id>.worker.stdout.json|.worker.exit`：
+  `out/raw/<YYYYMMDD-HHMMSS-mmm-nonce>-<routine>-<job_id>.worker.stdout.json|.worker.exit`：
+  routine 取 `job.routine` → `pack.routine` → 从 `job_id` 中间段推导；**绝不用 mode 代替 routine**；
   用脚本实际开始时间命名、原子替换、写前校验是合法 JSON；`.worker.` infix 防止和
   routine 自己的 stdout 重定向撞名。**routine 不得再重定向 stdout 到 out/raw/**。
 - `computed_comps.quality`：`ok`/`wide`（cap B）、`very_wide`（cap C，不可交易）、

@@ -7,6 +7,7 @@
 
 ## 1. 准备
 
+0. **S0 第一件事**：在 `state/runs/YYYY-MM-DD.json` 追加 running 记录（先留痕再采集）。
 1. S0 能力探测（重点 IBKR、Schwab、Hindsight、state、DeepSeek）。
 2. 读 `state/runs`：今天是否已跑过 holdings？已跑过且用户未要求重跑 → 退出（幂等）。
 3. 读 `state/advice`：今日 KOL routine 已出卡的票（这些仓不再重复送分析）。

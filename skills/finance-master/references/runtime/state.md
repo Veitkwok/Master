@@ -22,7 +22,7 @@
 ├── out/                              # 每日摘要与卡的文件版
 │   ├── YYYY-MM-DD-<routine>.md
 │   ├── cards/YYYY-MM-DD/<SYM>.md
-│   └── raw/<YYYYMMDD-HHMMSS>-<routine>-<job_id>.worker.stdout.json|.worker.exit
+│   └── raw/<YYYYMMDD-HHMMSS-mmm-nonce>-<routine>-<job_id>.worker.stdout.json|.worker.exit
 │                                    # 脚本自己写（v1.0.18 起；原子写、合法 JSON；带 .worker 防撞名）
 └── packs/                            # 本轮数据包（调试/复现；可清理）
 ```
@@ -41,6 +41,18 @@
   也禁止收尾后补写"now"；
 - `price_asof` = 行情时点（IBKR 报价/收盘/盘后）；
 - 卡面第一行固定 `运行: <status> · <reason>`；持仓卡另带 `集中度:` / `接近失效:` 行。
+
+### run 生命周期与失败记录（v1.0.19 起）
+
+1. **S0 第一件事**：往 `runs/YYYY-MM-DD.json` 追加一条
+   `{routine, account, job_id, started, status:"running"}` —— 在 X/IBKR/Web 采集之前写；
+2. **S8**：更新 `finished` / `status`（succeeded|partial|failed）/ `result` / `cards` / `errors`；
+3. **任何异常**：写 `status:"failed"` + `error_class` + `finished`；
+4. **中断恢复**：下一轮开始先扫当日 `runs`，若某条 `running` 且 `started` 超过 2 小时
+   → 改成 `status:"failed"`, `error_class:"interrupted"`，并在摘要里报"某 routine 被中断"；
+5. **日检/报告 routine**：检查 5 条 routine 是否都有终态记录；缺记录 → 报
+   `failed(no_record)`，不算成功；
+6. 任何一次运行（含失败/中断）都必须在 `state/runs` 留痕；**不允许"什么都没留下"**。
 
 ### 状态语义（runs / 摘要共用）
 

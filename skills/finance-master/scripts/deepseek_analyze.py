@@ -46,6 +46,7 @@ import time
 from datetime import datetime
 import urllib.error
 import urllib.request
+import uuid
 from pathlib import Path
 
 def _resolve_skill_root() -> Path:
@@ -502,6 +503,26 @@ def _safe_job_id(job: dict) -> str:
     return safe or "job"
 
 
+def _job_routine(job: dict) -> str:
+    """Resolve the routine name for raw filenames.
+
+    Priority: explicit job.routine -> pack.routine -> derive from job_id
+    (e.g. 20261029-holdings-0826 -> holdings). Never fall back to mode.
+    """
+    payload = job_payload(job)
+    for source in (job, payload):
+        value = source.get("routine") if isinstance(source, dict) else None
+        if isinstance(value, str) and value.strip():
+            return re.sub(r"[^A-Za-z0-9_.-]", "_", value.strip())[:40]
+    job_id = str(job.get("job_id") or "")
+    parts = job_id.split("-")
+    if len(parts) >= 3 and parts[0].isdigit():
+        middle = "-".join(parts[1:-1]).strip()
+        if middle:
+            return re.sub(r"[^A-Za-z0-9_.-]", "_", middle)[:40]
+    return "routine"
+
+
 def write_raw(job: dict, payload: dict, exit_code: int) -> None:
     """Write a per-run raw copy atomically under out/raw/.
 
@@ -513,8 +534,8 @@ def write_raw(job: dict, payload: dict, exit_code: int) -> None:
         raw_dir = OUT_DEFAULT / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
         now = datetime.now().astimezone()
-        stamp = now.strftime("%Y%m%d-%H%M%S")
-        routine = re.sub(r"[^A-Za-z0-9_.-]", "_", str(job.get("routine") or "routine"))[:40]
+        stamp = now.strftime("%Y%m%d-%H%M%S") + f"-{now.microsecond // 1000:03d}-{uuid.uuid4().hex[:6]}"
+        routine = _job_routine(job)
         base = f"{stamp}-{routine}-{_safe_job_id(job)}"
         payload_path = raw_dir / f"{base}.worker.stdout.json"
         tmp = raw_dir / f".{base}.worker.stdout.json.tmp"
@@ -526,7 +547,7 @@ def write_raw(job: dict, payload: dict, exit_code: int) -> None:
         (raw_dir / f"{base}.worker.exit").write_text(f"{exit_code}\n", encoding="utf-8")
         (raw_dir / f"{base}.worker.meta.json").write_text(json.dumps({
             "job_id": job.get("job_id", ""),
-            "routine": job.get("routine", ""),
+            "routine": _job_routine(job),
             "exit_code": exit_code,
             "written_at": now.isoformat(),
             "job_asof": job.get("asof", ""),

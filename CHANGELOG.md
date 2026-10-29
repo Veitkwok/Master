@@ -1,5 +1,15 @@
 # CHANGELOG · Master pack
 
+## 1.0.19 — 2026-10-29（中断无记录 + raw routine 字段）
+
+- raw 文件名 routine 字段修正：取 `job.routine` → `pack.routine` → 从 `job_id` 中间段推导，
+  **不再用 mode 当 routine**；文件名加毫秒 + 短 nonce，避免并发/同秒覆盖。
+- 中断留痕：S0 第一件事先写 `status:"running"` 起跑记录；失败写 `failed`；
+  下一轮把 >2h 的 `running` 标 `failed(interrupted)`；日检 routine 检查 5 条终态记录，
+  缺记录报 `failed(no_record)`，不允许"什么都没留下"。
+- job 契约要求顶层 `routine` 字段；runbook/delivery/state 同步。
+- `dev/tests/test_raw.py` 覆盖 routine 推导。
+
 ## 1.0.18 — 2026-10-28（raw 文件损坏 + job_id/asof 用排期时间）
 
 - raw 日志彻底防撞：文件名改为

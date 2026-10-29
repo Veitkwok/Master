@@ -102,6 +102,17 @@
 
 ---
 
+## 5.1 日检/报告 routine 的职责（建议）
+
+除汇总外，报告 routine 每天检查：
+
+1. 5 条 routine 在 `state/runs` 是否都有**终态记录**（succeeded/partial/failed）；
+   缺记录 → 报 `failed(no_record)`，并指出是哪条；
+2. 某条 `running` 超过 2 小时 → 标 `failed(interrupted)` 并报出；
+3. 当天卡数 = `sync_retain` 数；
+4. `out/raw` 新文件必须是合法 JSON（`*.worker.stdout.json`）；
+5. 任一项不过 → 报告标题写"FAIL"，不要报假绿灯。
+
 ## 6. 出问题先看哪里
 
 | 现象 | 先查 |

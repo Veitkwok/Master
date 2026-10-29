@@ -8,6 +8,8 @@
 
 ## 1. 准备（S0–S1）
 
+0. **S0 第一件事**：在 `state/runs/YYYY-MM-DD.json` 追加
+   `{routine, account, job_id, started, status:"running"}`（先留痕再采集）。
 1. 按 `SKILL.md` §2 做能力探测（IBKR / X / Hindsight / Schwab / state / DeepSeek）。
 2. 读 `state/runs/YYYY-MM-DD.json` 与 `state/advice/`：
    - `since = 该 routine 上次成功时间`，上限 14 天；无记录则用 7 天。

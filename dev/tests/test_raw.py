@@ -13,18 +13,22 @@ spec.loader.exec_module(worker)  # type: ignore[union-attr]
 
 tmp = Path(tempfile.mkdtemp(dir=ROOT / "dev" / "tests"))
 worker.OUT_DEFAULT = tmp
-worker.write_raw({"job_id": "20261028-primary_balder-0802", "routine": "primary_balder",
-                  "asof": "2026-10-28T07:56:00+08:00"},
+worker.write_raw({"job_id": "20261029-holdings-0826", "routine": "",
+                  "asof": "2026-10-29T08:26:18+08:00",
+                  "pack": {"routine": "holdings", "symbols": {}}},
                  {"schema": "master.deepseek.result/v1", "tickers": [{"symbol": "CEG"}]}, 0)
+worker.write_raw({"job_id": "20261029-holdings-0826", "asof": "", "pack": {}},
+                 {"schema": "master.deepseek.result/v1", "tickers": []}, 0)
 raw = tmp / "raw"
 files = sorted(p.name for p in raw.iterdir())
 json_files = [p for p in raw.iterdir() if p.name.endswith(".worker.stdout.json")]
-ok = (len(json_files) == 1
+ok = (len(json_files) == 2
       and all(name.endswith((".worker.stdout.json", ".worker.exit", ".worker.meta.json")) for name in files)
-      and "primary_balder" in json_files[0].name)
+      and all("holdings" in p.name for p in json_files))
 try:
-    payload = json.loads(json_files[0].read_text(encoding="utf-8"))
-    ok = ok and payload["tickers"][0]["symbol"] == "CEG"
+    payloads = [json.loads(p.read_text(encoding="utf-8")) for p in json_files]
+    ok = ok and any(pl.get("tickers") and pl["tickers"][0].get("symbol") == "CEG"
+                    for pl in payloads)
 except Exception:
     ok = False
 for p in sorted(raw.iterdir(), reverse=True):

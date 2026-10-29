@@ -13,7 +13,8 @@
 4. **原样保留**：`out/raw/<YYYYMMDD-HHMMSS>-<routine>-<job_id>.worker.stdout.json`
    + `.worker.exit`（**由 deepseek_analyze.py 自己写**，v1.0.18 起原子写、文件名带 `.worker`
    防撞；Bot / routine **不要**再把 stdout 重定向到 `out/raw/`）；
-5. **状态**：`state/runs`、`state/advice`、`state/mentions` 已写。
+5. **状态**：`state/runs`、`state/advice`、`state/mentions` 已写；**S0 必须先写
+   `status:"running"` 起跑记录**，失败/中断也要留 `failed` 记录（见 state.md）。
 
 时间戳：摘要里的 `asof` 用 run `started`，`price_asof` 用行情时点；不要用收尾时间。
 
