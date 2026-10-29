@@ -1,5 +1,11 @@
 # CHANGELOG · Master pack
 
+## 1.0.20 — 2026-10-29（手动测试记录约定）
+
+- `state/runs` 增加 `run_tag` 约定：手动测试写 `run_tag: manual`，日检跳过 manual；
+  测试记录不得覆盖正式 runs 文件（可保留 `.with-tests` 副本）。
+- 仅文档约定，无行为变更；v1.0.19 的代码修复仍为当前基线。
+
 ## 1.0.19 — 2026-10-29（中断无记录 + raw routine 字段）
 
 - raw 文件名 routine 字段修正：取 `job.routine` → `pack.routine` → 从 `job_id` 中间段推导，

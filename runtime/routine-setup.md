@@ -111,7 +111,9 @@
 2. 某条 `running` 超过 2 小时 → 标 `failed(interrupted)` 并报出；
 3. 当天卡数 = `sync_retain` 数；
 4. `out/raw` 新文件必须是合法 JSON（`*.worker.stdout.json`）；
-5. 任一项不过 → 报告标题写"FAIL"，不要报假绿灯。
+5. 任一项不过 → 报告标题写"FAIL"，不要报假绿灯；
+6. **跳过 `run_tag: manual` 的手动测试记录**，只检查当日正式 routine；
+7. 测试记录不要覆盖正式 `runs` 文件（可保留 `.with-tests` 副本）。
 
 ## 6. 出问题先看哪里
 
