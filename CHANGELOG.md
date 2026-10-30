@@ -1,5 +1,11 @@
 # CHANGELOG · Master pack
 
+## 1.0.22 — 2026-10-30（澄清 holdings 数据源）
+
+- holdings routine 的「不读 X」容易误读：明确写清它**连接 IBKR + Schwab（只读）+ Web +
+  Hindsight**，只是**不调用 X 读取器**（省 X 预算，社媒发现留给 kol routine）。
+- holdings runbook 增加"连接哪些数据源"表；routine-setup 的 holdings prompt 同步。
+
 ## 1.0.21 — 2026-10-30（平台连续中断 → 合并 routine）
 
 - 推荐 routine 从 5 条改为 **4 条**：`kol-primary`（3 个主号顺序跑，07:30）+

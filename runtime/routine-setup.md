@@ -84,7 +84,9 @@
 ```text
 使用 finance-master 技能，执行 references/runbooks/holdings-review.md。
 参数：routine_id=holdings。
-读取 IBKR + Schwab 全部持仓逐仓判断；不读 X；不写 watchlist、不下单；嘉信只读。
+连接 IBKR（持仓/行情/watchlist 只读）+ Schwab（只读）+ Web（财报/新闻/基本面）+ Hindsight；
+持仓复核不需要社媒发现，因此不调用 X 读取器（不是不连 IBKR）。
+只读；不写 watchlist、不下单；嘉信只读。
 ```
 
 ### 3.4 daily-report（日检）

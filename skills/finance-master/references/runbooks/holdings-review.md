@@ -1,7 +1,20 @@
 # Runbook · 持仓复核 routine（holdings）
 
 > 适用：`holdings`，每个交易日 1 次（建议 08:30 +08，美股收盘后）。
-> **不读 X。** 读 IBKR + Schwab 全量持仓 → 对照目标价/失效价/论点 → 给持有/加/减/卖。
+> 读 IBKR + Schwab 全量持仓 → 对照目标价/失效价/论点 → 给持有/加/减/卖。
+
+## 0. 连接哪些数据源（别误解"不读 X"）
+
+| 数据源 | 是否使用 | 用途 |
+|--------|:---:|------|
+| **IBKR** | ✅ | 持仓、账户、现价、历史、watchlist（只读） |
+| **Schwab** | ✅ 只读 | 持仓、成本、交易记录 |
+| **Web（WebFetch/Tavily）** | ✅ | 财报、新闻、催化剂、peers/基本面 |
+| **Hindsight sherlock** | ✅ | 历史 case / kill criteria / target |
+| **X** | ❌ 本 routine 不调用 | 持仓复核不需要社媒发现；X 读取留给 kol-primary / supplement routine，节省 X 预算 |
+
+"不读 X"只表示**这个 routine 不调用 X 读取器**，不是不连 IBKR；如果某个持仓需要 X 情绪，
+用 ad-hoc 对话或 kol routine 补，不塞进持仓复核。
 
 ---
 
