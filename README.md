@@ -39,8 +39,8 @@ cd /workspace/master && git pull && bash install.sh
 
 ## 2. 配置 routine（一次性）
 
-1. 打开 Bot → Routines，按 `runtime/routine-setup.md` 建 **5 类 routine**（主账号 3 个 +
-   补充 1 个 + 持仓复核 1 个；若一天两轮，复制对应 routine 并改时间）。
+1. 打开 Bot → Routines，按 `runtime/routine-setup.md` 建 **4 条 routine**（主号合并 1 条 +
+   补充 1 条 + 持仓复核 1 条 + 日检 1 条；间隔 ≥40 分钟，减少平台并发中断）。
 2. 每个 routine prompt 用 `runtime/routine-setup.md` 里的模板（很短，流程在技能里）。
 3. 时区设 `Asia/Shanghai`。
 4. Approvals：参考 `skills/finance-master/references/runtime/approvals.md`：
@@ -96,7 +96,7 @@ Master/
 │   ├── SKILL.md                    # 入口（先读这一页）
 │   ├── scripts/                    # DeepSeek worker + 自检
 │   └── references/
-│       ├── runbooks/               # 5 条流程
+│       ├── runbooks/               # 4 条流程
 │       ├── runtime/                # 能力/状态/审批/交付
 │       ├── contracts/              # 数据包/建议卡/置信度/记忆/DeepSeek/账号/账本
 │       ├── decisions/              # stance/target/sell/risk gates

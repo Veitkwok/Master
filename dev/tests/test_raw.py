@@ -19,12 +19,15 @@ worker.write_raw({"job_id": "20261029-holdings-0826", "routine": "",
                  {"schema": "master.deepseek.result/v1", "tickers": [{"symbol": "CEG"}]}, 0)
 worker.write_raw({"job_id": "20261029-holdings-0826", "asof": "", "pack": {}},
                  {"schema": "master.deepseek.result/v1", "tickers": []}, 0)
+worker.write_raw({"job_id": "20261030-0756-primary_balder", "asof": "", "pack": {}},
+                 {"schema": "master.deepseek.result/v1", "tickers": []}, 0)
 raw = tmp / "raw"
 files = sorted(p.name for p in raw.iterdir())
 json_files = [p for p in raw.iterdir() if p.name.endswith(".worker.stdout.json")]
-ok = (len(json_files) == 2
+ok = (len(json_files) == 3
       and all(name.endswith((".worker.stdout.json", ".worker.exit", ".worker.meta.json")) for name in files)
-      and all("holdings" in p.name for p in json_files))
+      and any("holdings" in p.name for p in json_files)
+      and any("primary_balder" in p.name for p in json_files))
 try:
     payloads = [json.loads(p.read_text(encoding="utf-8")) for p in json_files]
     ok = ok and any(pl.get("tickers") and pl["tickers"][0].get("symbol") == "CEG"

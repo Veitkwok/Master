@@ -1,5 +1,15 @@
 # CHANGELOG · Master pack
 
+## 1.0.21 — 2026-10-30（平台连续中断 → 合并 routine）
+
+- 推荐 routine 从 5 条改为 **4 条**：`kol-primary`（3 个主号顺序跑，07:30）+
+  `supplement`（08:10）+ `holdings`（08:30）+ `daily-report`（09:10），间隔 ≥40 分钟。
+  目的：降低 Grok Bot routine 并发/自动化限流导致的启动阶段中断。
+- `runtime/routine-setup.md` 重写：新 prompt、平台中断处理、日检职责、旧 5 条布局弃用。
+- `job_id` 规范：推荐 `YYYYMMDD-<routine>-HHMM`，脚本同时容忍 `YYYYMMDD-HHMM-<routine>`。
+- 日检规则：缺记录 `failed(no_record)`、>2h running `failed(interrupted)`、跳过 manual、
+  任一项不过标题 FAIL。
+
 ## 1.0.20 — 2026-10-29（手动测试记录约定）
 
 - `state/runs` 增加 `run_tag` 约定：手动测试写 `run_tag: manual`，日检跳过 manual；

@@ -516,8 +516,13 @@ def _job_routine(job: dict) -> str:
             return re.sub(r"[^A-Za-z0-9_.-]", "_", value.strip())[:40]
     job_id = str(job.get("job_id") or "")
     parts = job_id.split("-")
-    if len(parts) >= 3 and parts[0].isdigit():
-        middle = "-".join(parts[1:-1]).strip()
+    if len(parts) >= 3 and parts[0].isdigit() and len(parts[0]) == 8:
+        middle = ""
+        if len(parts) >= 3 and parts[-1].isdigit() and len(parts[-1]) == 4:
+            middle = "-".join(parts[1:-1])          # YYYYMMDD-<routine>-HHMM
+        elif len(parts) >= 4 and parts[1].isdigit() and len(parts[1]) == 4:
+            middle = "-".join(parts[2:])            # YYYYMMDD-HHMM-<routine> (tolerated)
+        middle = middle.strip()
         if middle:
             return re.sub(r"[^A-Za-z0-9_.-]", "_", middle)[:40]
     return "routine"

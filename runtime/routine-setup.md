@@ -1,8 +1,9 @@
 # Routine 配置（Grok Bot · 一次性设置）
 
-> 在 Bot 的 Routines 里建 5 类 routine。**Prompt 很短**，流程都在技能里。
+> **2026-10-30 起推荐 4 条 routine**（原 5 条布局在平台出现连续中断后弃用）。
+> 原因：Grok Bot 的 routine 并发/自动化限流会让靠得太近的 run 在启动阶段被平台标 failed；
+> 把 3 个主号合并成 1 条顺序执行的 routine，可显著减少并发。
 > 时区：Settings → Bot → Timezone = `Asia/Shanghai`。
-> 每个 routine 可以一天触发一次；要一天两轮就复制一个、改时间（Bot routines ≤50）。
 
 ---
 
@@ -11,12 +12,14 @@
 - [ ] 已跑过 `bash install.sh`（技能库在 `~/agent-data/workflows/finance-master`；
       状态目录在 `/workspace/master/state`）。
 - [ ] Bot 已能读 IBKR 持仓 + 四张 watchlist（在对话里试一次）。
-- [ ] Secrets 里有 `DEEPSEEK_API_KEY`（可选；缺失则回退 bot-inline）。
-- [ ] Approvals：Auto Review；下单/草稿/watchlist 写/邮件 = Ask first。
+- [ ] DeepSeek key 已放（`.secrets/deepseek.key` 或环境变量）。
+- [ ] Approvals：Auto Review；下单/草稿/watchlist 写/邮件 = Ask first；
+      固定 worker 命令已预放行（见 §2）。
+- [ ] **旧的 5 条 routine 先 Disable/删除**，避免和新的 4 条抢并发。
 
 ---
 
-## 2. 先预放行 DeepSeek 固定命令（部署前必做）
+## 2. 预放行 DeepSeek 固定命令（部署前必做）
 
 1. 在有人在场的对话里手动跑一次：
    `/usr/bin/python3 -I -B /workspace/master/skill/scripts/deepseek_analyze.py --selftest`
@@ -24,103 +27,104 @@
 3. Settings → General → Auto-review → Custom Rules：添加 Allow 规则
    （模板在技能内 `references/runtime/approvals.md` §2.1）。
 4. 连续跑 2–3 次确认不再弹卡；然后才启用 routine。
-5. 注意：无人值守审批约 10 分钟过期且动作不执行；被拦 = 该 run 失败，下一轮补。
+5. 无人值守审批约 10 分钟过期且动作不执行；被拦 = 该 run 失败，下一轮补。
+
+### 2.1 routine 里不要重定向 stdout
+
+- 固定命令直接运行即可；**不要**写 `> /workspace/master/out/raw/...` 之类的重定向。
+  raw 由 `deepseek_analyze.py` 原子写入 `.worker.stdout.json`。
+- `job_id` / `asof` 用 S0 真实开始时间，不要用排期时刻。
+- `job_id` 推荐 `YYYYMMDD-<routine>-HHMM`（脚本也容忍 `YYYYMMDD-HHMM-<routine>`）。
 
 ---
 
-## 2.1 routine 里不要重定向 stdout
+## 3. 推荐的 4 条 routine
 
-- 固定命令直接运行即可；**不要**在 routine 里写 `> /workspace/master/out/raw/...` 之类的
-  重定向。raw 文件由 `deepseek_analyze.py` 自己原子写入（`.worker.stdout.json`）。
-- `job_id` / `asof` 用 S0 的真实开始时间，不要用排期时刻。
+| # | routine | 时间（Asia/Shanghai） | 内容 |
+|---|---------|----------------------|------|
+| 1 | `kol-primary` | **07:30** | 顺序跑 3 个主号（babybus → haochi → balder） |
+| 2 | `supplement` | **08:10** | 一次性读 3 个补充号 |
+| 3 | `holdings` | **08:30** | 不读 X，IBKR + Schwab 全持仓复核 |
+| 4 | `daily-report` | **09:10** | 日检：终态记录/缺口/卡数/raw/FAIL 汇总 |
 
-## 3. 五个 routine 的 prompt（直接复制）
+间隔 ≥40 分钟；如果平台稳定后再考虑把主号拆回 3 条。
 
-### 2.1 primary_babybus
+### 3.1 kol-primary（合并主号）
 
-- Schedule：`每天 07:30`（Asia/Shanghai）
+- Schedule：`每天 07:30`
 - Prompt：
 
 ```text
-使用 finance-master 技能，执行 references/runbooks/kol-primary.md。
-参数：routine_id=primary_babybus, account=BabybusFL。
-严格按技能内的数据包、置信度、建议卡契约执行：只读连接器；
-不写 watchlist、不下单、不发邮件；结果按 runtime/delivery.md 的摘要格式输出。
+使用 finance-master 技能，依次执行 references/runbooks/kol-primary.md 三次：
+1) routine_id=primary_babybus, account=BabybusFL
+2) routine_id=primary_haochi, account=haochihaochiaaa
+3) routine_id=primary_balder, account=Balder13946731（不打开 Balder 网站，只读 X）
+
+每次都必须独立写 state/runs、jobs/current.json、out/raw、摘要与卡片；三次之间不要跳过；
+全部完成后输出一份合并摘要（每次的状态/耗时/卡数/target/可操作票/错误）。
+只读连接器；不写 watchlist、不下单、不发邮件。
 ```
 
-### 2.2 primary_haochi
+### 3.2 supplement
 
-- Schedule：`每天 07:40`
-- Prompt：同上，`routine_id=primary_haochi, account=haochihaochiaaa`。
-
-### 2.3 primary_balder
-
-- Schedule：`每天 07:50`
-- Prompt：同上，`routine_id=primary_balder, account=Balder13946731`。
-- 注意：**不打开 Balder 网站**，只读 X。
-
-### 2.4 supplement
-
-- Schedule：`每天 08:00`
+- Schedule：`每天 08:10`
 - Prompt：
 
 ```text
 使用 finance-master 技能，执行 references/runbooks/kol-supplement.md。
 参数：routine_id=supplement, accounts=aleabitoreddit,jiaao_wu,KotlinerBTC。
-严格按技能契约执行：只读 X 与 IBKR；不写 watchlist、不下单；按摘要格式输出。
+只读 X 与 IBKR；不写 watchlist、不下单；按摘要格式输出。
 ```
 
-### 2.5 holdings（持仓复核）
+### 3.3 holdings
 
-- Schedule：`每天 08:30`（美股收盘后；只跑一次）
+- Schedule：`每天 08:30`
 - Prompt：
 
 ```text
 使用 finance-master 技能，执行 references/runbooks/holdings-review.md。
 参数：routine_id=holdings。
-读取 IBKR + Schwab 全部持仓并逐仓判断（持有/加仓/减仓/卖出）；
-不读 X；不写 watchlist、不下单；嘉信只读。按摘要格式输出。
+读取 IBKR + Schwab 全部持仓逐仓判断；不读 X；不写 watchlist、不下单；嘉信只读。
+```
+
+### 3.4 daily-report（日检）
+
+- Schedule：`每天 09:10`
+- Prompt：
+
+```text
+使用 finance-master 技能做当日日检（只读，不重复分析）：
+1) 读取 state/runs/今天 的记录；跳过 run_tag=manual 的手动测试；
+2) 3 条日常 routine（kol-primary 里 3 个主号、supplement、holdings）都要有终态记录；
+   缺记录 → failed(no_record)；仍为 running 且 started 超过 2 小时 → failed(interrupted)；
+3) 检查 out/raw 的 *.worker.stdout.json 都是合法 JSON；
+4) 检查卡数 = sync_retain 数、卡片有 运行:/证据/目标质量/集中度/接近失效；
+5) 任一项不过 → 标题写 FAIL 并列出；全部通过 → PASS；
+6) 输出到 /workspace/master/out/YYYY-MM-DD-daily-report.md。
+不要写 watchlist、不下单、不发邮件。
 ```
 
 ---
 
-## 4. 可选：一天两轮 / 三轮
+## 4. 平台中断的处理
 
-- 推荐先跑 **2 轮/日**：把 2.1–2.4 各复制一份，时间改成 `20:30 / 20:40 / 20:50 / 21:00`；
-  holdings 保持 1 次。
-- 想 3 轮：再加 `12:30 / 12:40 / 12:50 / 13:00` 一份。先跑一周看用量再决定。
-- 每次运行都会自动只读增量（时间窗 = 距上次成功，≤14 天），不会重复分析旧帖。
-- X 读取预算：主账号 1–2 次/轮；补充 3–6 次/轮；每日合计约 10–20 次。
-
----
-
-## 5. 手动触发与 webhook
-
-- Bot 的 "Test" 会真实执行一次（会消耗 usage），首次可用它验证。
-- 可用 webhook 触发（POST + `Authorization: Bearer <key>`）；没有结果回执，
-  结果仍只在聊天里。不建议把 webhook 当主路径。
+- 平台把 run 标 failed 时，Bot 侧可能只留下 `status:"running"` 的起跑记录；
+  下一轮/日检必须把它标 `failed(interrupted)`，**不允许**当成成功。
+- 同一个 routine 连续 2 天被中断：
+  1. 先在 Grok Bot 的 **run history** 看平台给的失败原因（并发/限流/超时/配额）；
+  2. 把排期再拉开 10–20 分钟，或把该 routine 合并进相邻 run；
+  3. 仍不行就把该 routine 改成手动 Test，观察一段时间。
+- 失败后不需要当天补跑：下一次正常运行会按"距上次成功"窗口自动补数据；
+  想立刻补就手动 Test 该 routine。
 
 ---
 
-## 5.1 日检/报告 routine 的职责（建议）
-
-除汇总外，报告 routine 每天检查：
-
-1. 5 条 routine 在 `state/runs` 是否都有**终态记录**（succeeded/partial/failed）；
-   缺记录 → 报 `failed(no_record)`，并指出是哪条；
-2. 某条 `running` 超过 2 小时 → 标 `failed(interrupted)` 并报出；
-3. 当天卡数 = `sync_retain` 数；
-4. `out/raw` 新文件必须是合法 JSON（`*.worker.stdout.json`）；
-5. 任一项不过 → 报告标题写"FAIL"，不要报假绿灯；
-6. **跳过 `run_tag: manual` 的手动测试记录**，只检查当日正式 routine；
-7. 测试记录不要覆盖正式 `runs` 文件（可保留 `.with-tests` 副本）。
-
-## 6. 出问题先看哪里
+## 5. 出问题先看哪里
 
 | 现象 | 先查 |
 |------|------|
-| routine 没输出 | Bot 聊天里的失败摘要；X / IBKR 连接 |
-| 卡全是观望 | 数据包缺口（fundamentals/quote）；或 confidence 被压到 C |
-| 没有 DeepSeek | 审批拦截/密钥缺失；看摘要里的 `analysis_source` |
-| 重复分析旧帖 | 状态目录 `/workspace/master/state` 是否可写 |
-| 技能未触发 | 手动发一次："按 finance-master 技能读我的持仓" |
+| routine 没输出/被中断 | Bot run history；`state/runs` 是否为 failed(interrupted)/running |
+| 卡全是观望 | target 是否因缺 fundamentals/peers 被 blocked；confidence 是否 C |
+| 没调用 DeepSeek | 审批拦截/密钥缺失；摘要 `analysis_source` |
+| raw 文件坏 | 只认 `*.worker.stdout.json`；routine 不得重定向进 out/raw |
+| Candidate 状态不同步 | 写入成功后 pending_candidates 的 confirmed/written_at |

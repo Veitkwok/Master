@@ -45,7 +45,7 @@ job 文件（Bot 写）：
 ```json
 {
   "schema": "master.deepseek.job/v1",
-  "job_id": "20261023-primary_babybus-0730",
+  "job_id": "20261023-primary_babybus-0730",   # 推荐 YYYYMMDD-<routine>-HHMM；也容忍 YYYYMMDD-HHMM-<routine>
   "routine": "primary_babybus",       # 必填；raw 文件名用它
   "mode": "routine | deep",
   "asof": "2026-10-23T07:30:00+08:00",
