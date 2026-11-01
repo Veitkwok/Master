@@ -152,6 +152,8 @@ job 文件（Bot 写）：
 - 429/5xx：指数退避 2s/4s/8s（+jitter），最多 3 次 → 仍失败 exit 6；
 - 空 content / `finish_reason=length`：关闭 thinking、temperature 0.1、max_tokens ×1.5
   重试一次；
+- **JSON/schema 不合法**：额外做最多 2 次 repair 重试（追加"只返回合法 JSON"指令）；
+  仍失败 → exit 4（截断 exit 5），并把 invalid 内容截断写入 `out/raw/*.worker.invalid` 便于排查；
 - JSON 不合法：同上重试一次 → 仍失败 exit 4；
 - 401/402/403：不重试，exit 2；
 - 超时（默认 240s）：exit 7。

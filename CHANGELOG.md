@@ -1,5 +1,13 @@
 # CHANGELOG · Master pack
 
+## 1.0.23 — 2026-10-31（KOL 卡集中度行 + haochi JSON 重试）
+
+- 卡格式统一：**所有卡**（含未持有的 KOL 卡）都必须有
+  `集中度:` 与 `接近失效:` 两行；未持有写 `n/a（未持有）`（修 4 张 KOL 卡漏行）。
+- worker JSON 容错：空 content/截断重试后，JSON/schema 不合法再**最多 2 次 repair 重试**；
+  仍失败 exit 4/5，并写 `out/raw/*.worker.invalid` 截断内容供排查（haochi exit 4）。
+- advice-card / delivery / kol-primary / deepseek 契约同步。
+
 ## 1.0.22 — 2026-10-30（澄清 holdings 数据源）
 
 - holdings routine 的「不读 X」容易误读：明确写清它**连接 IBKR + Schwab（只读）+ Web +
