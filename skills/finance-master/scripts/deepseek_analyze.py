@@ -601,41 +601,73 @@ def run_analysis(job: dict, key: str) -> int:
             return 6
 
     content, finish, usage = extract(payload)
-    retried = False
     if not content.strip() or finish == "length":
         # retry once with thinking disabled, lower temperature, larger budget
         body = request_body(system, job, mode, "off")
         body["temperature"] = 0.1
         body["max_tokens"] = int(MAX_TOKENS[mode] * 1.5)
         payload, code = http_call(key, body, timeout)
-        retried = True
         if code == 200:
             content, finish, usage = extract(payload)
-    if not content.strip():
-        return 4
-    if finish == "length":
-        return 5
-    try:
-        result = parse_json(content)
-    except (ValueError, json.JSONDecodeError):
-        return 4
-    # canonical field name: symbol (normalize worker output; warn on ticker)
-    normalized = []
-    for t in result.get("tickers", []):
-        if not isinstance(t, dict):
-            continue
-        if "symbol" not in t and t.get("ticker"):
-            t["symbol"] = t["ticker"]
-            normalized.append(str(t["symbol"]))
-        t.pop("ticker", None)
-    clean_optional(result)
-    if normalized and "warnings" not in result:
-        result["warnings"] = []
-    if normalized:
-        result.setdefault("warnings", []).append(
-            f"normalized ticker->symbol for {', '.join(normalized)}")
-    if validate(result):
-        return 4
+
+    def _try_parse(text: str, finish_reason: str):
+        if not text.strip() or finish_reason == "length":
+            return None
+        try:
+            obj = parse_json(text)
+        except (ValueError, json.JSONDecodeError):
+            return None
+        if not isinstance(obj, dict):
+            return None
+        normalized = []
+        for t in obj.get("tickers", []):
+            if not isinstance(t, dict):
+                continue
+            if "symbol" not in t and t.get("ticker"):
+                t["symbol"] = t["ticker"]
+                normalized.append(str(t["symbol"]))
+            t.pop("ticker", None)
+        clean_optional(obj)
+        if normalized:
+            obj.setdefault("warnings", []).append(
+                f"normalized ticker->symbol for {', '.join(normalized)}")
+        if validate(obj):
+            return None
+        return obj
+
+    result = _try_parse(content, finish)
+    repair = 0
+    while result is None and repair < 2:
+        repair += 1
+        print(f"worker: invalid JSON/schema -> repair attempt {repair}", file=sys.stderr)
+        body = request_body(system, job, mode, "off")
+        body["temperature"] = 0.1
+        body["max_tokens"] = int(MAX_TOKENS[mode] * 1.5)
+        body["messages"].append({
+            "role": "user",
+            "content": "Your previous answer was not valid JSON or did not match the schema. "
+                       "Return ONLY one valid JSON object matching the schema. No markdown, no prose.",
+        })
+        payload, code = http_call(key, body, timeout)
+        if code == -1:
+            return 7
+        if code == -2:
+            return 3
+        if code != 200:
+            write_raw(job, {"schema": "master.deepseek.invalid/v1",
+                            "error": f"http {code}", "repair_attempt": repair}, 4)
+            return 4
+        content, finish, usage = extract(payload)
+        result = _try_parse(content, finish)
+    if result is None:
+        truncated = finish == "length"
+        write_raw(job, {
+            "schema": "master.deepseek.invalid/v1",
+            "error": "truncated" if truncated else "invalid_json_or_schema",
+            "finish_reason": finish,
+            "content_tail": content[:3000],
+        }, 5 if truncated else 4)
+        return 5 if truncated else 4
 
     computed = compute_comps(pack)
     for t in result.get("tickers", []):
