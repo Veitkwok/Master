@@ -90,6 +90,18 @@ result_note: "可选，不带保证收益话术"
   sync_retain 条数（允许 = 已写入 + 队列），并把 document_id 写进 `state/runs` 的
   `retained_cases[]`。
 
+### 历史补写（outage 恢复后）
+
+若某天的卡在旧版本（没有 pending_retains 队列）期间因 Hindsight 故障没写进记忆：
+
+1. 来源优先用 `state/advice/YYYY-MM.jsonl`（结构化：symbol/stance/target/invalidation/
+   trap_level/confidence）；thesis / 失效条件文本从 `out/cards/YYYY-MM-DD/<SYM>.md` 取；
+2. `document_id = case-<TICKER>-<YYYYMMDD>`，写前先用 `get_document` 查重；
+3. case 标 `origin: backfill`、`asof` = 原卡日期；**不补行情价、不补持仓、不补今日观点**；
+4. 补写完成核对数量（当日卡数 = 已存在 + 新写入）；记一条
+   `state/runs/YYYY-MM-DD-backfill.json`；
+5. 只补 case，不补 POSTMORTEM（POSTMORTEM 仍等用户给结果）。
+
 ### 写入失败与补写队列（v1.0.24 起）
 
 - `sync_retain` 失败（Cloudflare 1033/530、401、超时等）→ 把 case 原文写入

@@ -1,5 +1,11 @@
 # CHANGELOG · Master pack
 
+## 1.0.25 — 2026-11-04（历史 case 补写规范）
+
+- memory 契约新增"历史补写"小节：旧版本 outage 期间漏写的 case，可从未结构化的
+  `state/advice` + 卡片 markdown 重建；document_id 查重、origin=backfill、不补行情/持仓；
+- 用于 2026-11-04 的 11 张卡（v1.0.24 之前无 pending 队列）。
+
 ## 1.0.24 — 2026-11-04（Hindsight 隧道故障的降级）
 
 - 新增记忆补写队列 `state/pending_retains.json`：sync_retain 失败（Cloudflare 1033/530、
