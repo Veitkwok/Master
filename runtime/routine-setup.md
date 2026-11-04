@@ -100,7 +100,8 @@
 2) 3 条日常 routine（kol-primary 里 3 个主号、supplement、holdings）都要有终态记录；
    缺记录 → failed(no_record)；仍为 running 且 started 超过 2 小时 → failed(interrupted)；
 3) 检查 out/raw 的 *.worker.stdout.json 都是合法 JSON；
-4) 检查卡数 = sync_retain 数、卡片有 运行:/证据/目标质量/集中度/接近失效；
+4) 检查卡数 = retained_cases + pending_retains（Hindsight down 时允许排队，
+   但要有队列记录；两者都缺才 FAIL）；卡片有 运行:/证据/目标质量/集中度/接近失效；
 5) 任一项不过 → 标题写 FAIL 并列出；全部通过 → PASS；
 6) 输出到 /workspace/master/out/YYYY-MM-DD-daily-report.md。
 不要写 watchlist、不下单、不发邮件。

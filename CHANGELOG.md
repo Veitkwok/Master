@@ -1,5 +1,13 @@
 # CHANGELOG · Master pack
 
+## 1.0.24 — 2026-11-04（Hindsight 隧道故障的降级）
+
+- 新增记忆补写队列 `state/pending_retains.json`：sync_retain 失败（Cloudflare 1033/530、
+  401、超时）时把 case 入队，不阻断出卡；下一轮 S0 后先 flush 重试。
+- run 记录增加 `retained_cases[]` / `pending_retains`；摘要写 `memory: down; queued N`。
+- 日检规则：`卡数 = retained + pending` 视为合格；两者都缺才 FAIL；Hindsight down 只算 partial。
+- 目的：基础设施（Cloudflare 隧道/Clash DNS）故障不再导致交易 routine 被暂停。
+
 ## 1.0.23 — 2026-10-31（KOL 卡集中度行 + haochi JSON 重试）
 
 - 卡格式统一：**所有卡**（含未持有的 KOL 卡）都必须有

@@ -15,6 +15,7 @@
 │   ├── mentions.jsonl                # 14 日提及（KOL 频率用）
 │   ├── advice/YYYY-MM.jsonl          # 建议卡归档（逐行 JSON）
 │   ├── pending_candidates.json       # 待用户确认的 Candidate
+│   ├── pending_retains.json          # 记忆写入失败队列（Hindsight 恢复后补写）
 │   ├── watchlists/YYYY-MM-DD.json    # 四张表快照（只读采集）
 │   ├── peers/YYYY-MM-DD.json         # 当轮采到的同业倍数（同日复用）
 │   ├── fundamentals/YYYY-MM-DD.json  # 当轮采到的财务/股数/净债（同日复用）
@@ -84,6 +85,8 @@
       "deepseek_cache_hit": 0,
       "tickers_seen": ["NVDA", "MRVL"],
       "cards": ["NVDA"],
+      "retained_cases": ["case-NVDA-20261023"],
+      "pending_retains": 0,
       "skipped": [{"symbol": "MRVL", "reason": "target_missing"}],
       "candidates_proposed": ["NVDA"],
       "errors": [],

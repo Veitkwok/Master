@@ -10,6 +10,8 @@
 
 0. **S0 第一件事**：在 `state/runs/YYYY-MM-DD.json` 追加
    `{routine, account, job_id, started, status:"running"}`（先留痕再采集）。
+   - 然后 **flush `state/pending_retains.json`**：逐条重试 sync_retain，成功的删除；
+   - 本轮新卡若 sync_retain 失败 → 追加进队列，摘要写 `memory: down; queued N`。
 1. 按 `SKILL.md` §2 做能力探测（IBKR / X / Hindsight / Schwab / state / DeepSeek）。
 2. 读 `state/runs/YYYY-MM-DD.json` 与 `state/advice/`：
    - `since = 该 routine 上次成功时间`，上限 14 天；无记录则用 7 天。
