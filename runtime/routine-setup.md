@@ -97,13 +97,19 @@
 ```text
 使用 finance-master 技能做当日日检（只读，不重复分析）：
 1) 读取 state/runs/今天 的记录；跳过 run_tag=manual 的手动测试；
-2) 3 条日常 routine（kol-primary 里 3 个主号、supplement、holdings）都要有终态记录；
-   缺记录 → failed(no_record)；仍为 running 且 started 超过 2 小时 → failed(interrupted)；
-3) 检查 out/raw 的 *.worker.stdout.json 都是合法 JSON；
-4) 检查卡数 = retained_cases + pending_retains（Hindsight down 时允许排队，
-   但要有队列记录；两者都缺才 FAIL）；卡片有 运行:/证据/目标质量/集中度/接近失效；
-5) 任一项不过 → 标题写 FAIL 并列出；全部通过 → PASS；
-6) 输出到 /workspace/master/out/YYYY-MM-DD-daily-report.md。
+2) 期望的正式记录：primary_babybus、primary_haochi、primary_balder、supplement、holdings；
+   缺记录/仍 running 超过 2 小时 → 记为异常；
+3) **分类异常**：
+   a) platform_failure：完全没有 run 记录（Bot 没拿到执行机会，平台报 Activity task failed 等）；
+   b) app_failure：有记录但状态/字段/卡片/raw 不合规；
+4) **对 platform_failure 做一次 catch-up**：在日检里按对应 runbook 手动补跑该 routine 一次
+   （只补缺的那条；补跑用全新 job、独立 job_id；最多补 1 次），补跑后再检查；
+   补跑成功 → 该条标 retried_ok，整体不算 FAIL；补跑仍失败 → 列 FAIL(platform)；
+5) 检查 out/raw 的 *.worker.stdout.json 都是合法 JSON；
+6) 检查卡数 = retained_cases + pending_retains；卡片有 运行:/证据/目标质量/集中度/接近失效；
+7) 输出到 /workspace/master/out/YYYY-MM-DD-daily-report.md，包含：
+   PASS/FAIL、每条 routine 状态、platform_failure/app_failure 分类、catch-up 结果；
+8) app_failure 一律 FAIL；platform_failure 只有在 catch-up 后仍失败才 FAIL。
 不要写 watchlist、不下单、不发邮件。
 ```
 

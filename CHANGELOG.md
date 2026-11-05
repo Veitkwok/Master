@@ -1,5 +1,13 @@
 # CHANGELOG · Master pack
 
+## 1.0.26 — 2026-11-05（平台 Activity task failed → 日检 catch-up）
+
+- 日检区分 `platform_failure`（完全没有 run 记录，平台在 Bot 执行前失败）与
+  `app_failure`（有记录但字段/卡片/raw 不合规）。
+- 对 platform_failure 在日检内**补跑该 routine 一次**（全新 job，最多 1 次）；
+  补跑成功标 `retried_ok`、不算 FAIL；补跑仍失败才 FAIL(platform)。
+- app_failure 仍一律 FAIL；避免平台随机故障无限暂停交易 routine。
+
 ## 1.0.25 — 2026-11-04（历史 case 补写规范）
 
 - memory 契约新增"历史补写"小节：旧版本 outage 期间漏写的 case，可从未结构化的

@@ -51,6 +51,8 @@
 3. **任何异常**：写 `status:"failed"` + `error_class` + `finished`；
 4. **中断恢复**：下一轮开始先扫当日 `runs`，若某条 `running` 且 `started` 超过 2 小时
    → 改成 `status:"failed"`, `error_class:"interrupted"`，并在摘要里报"某 routine 被中断"；
+   若完全没有记录（平台在 Bot 拿到执行机会前就失败）→ 日检标
+   `platform_failure(no_record)`，并尝试 catch-up 一次（见 routine-setup 日检 prompt）；
 5. **日检/报告 routine**：检查 5 条 routine 是否都有终态记录；缺记录 → 报
    `failed(no_record)`，不算成功；
 6. 任何一次运行（含失败/中断）都必须在 `state/runs` 留痕；**不允许"什么都没留下"**。
