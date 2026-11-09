@@ -1,5 +1,10 @@
 # CHANGELOG · Master pack
 
+## 1.0.29 — 2026-11-09（override 操作细节）
+
+- override 契约补 `override_quantity`（TRIM 时必填）与写入顺序：
+  `state/advice` 机器记录 → `out/cards/<date>/<SYM>-override.md` 卡面 → `OVERRIDE-*` case → 回读验证。
+
 ## 1.0.28 — 2026-11-09（override 决策卡）
 
 - 新增 `contracts/override-card.md`：规则要求 SELL/TRIM 但用户决定暂不执行时，

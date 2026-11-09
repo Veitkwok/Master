@@ -38,6 +38,7 @@ triggered_rule: invalidation.price | invalidation.thesis | target | trap
 trigger_evidence: "11-04/05/06 连续 3 个 RTH 收盘 48.42/43.66/46.40 < 53.50"
 default_action: SELL | TRIM
 override_decision: HOLD | TRIM
+override_quantity: "1/2 of remaining"        # override_decision=TRIM 时必填
 override_reason: fundamental_improvement | earnings_pending | thesis_intact | tax_or_liquidity | other
 override_reason_text: "一句可证伪的覆盖理由"
 evidence: ["来源/日期/链接（不许用训练数据）"]
@@ -64,6 +65,14 @@ schwab_trade: forbidden
 ```
 
 ---
+
+## 2.1 写到哪（Bot 执行顺序）
+
+1. **机器版**：追加一行 JSON 到 `state/advice/YYYY-MM.jsonl`（`type: override`）；
+2. **卡面版**：写 `out/cards/YYYY-MM-DD/<SYM>-override.md`，并在当日摘要追加该卡；
+3. **记忆**：`sync_retain` 一条 `OVERRIDE-<TICKER>-<YYYYMMDD>` case；
+4. 回读验证：`tail -1 state/advice/...` 可解析、卡文件存在、memory 可查；
+5. 日检下一次会检查 override 有效性（active/未过期/risk_ack 完整）。
 
 ## 3. 卡面展示格式（写进 `out/` 与摘要）
 
