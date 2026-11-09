@@ -82,8 +82,10 @@ for each position:
 ```
 
 规则：
-- 任一硬失效（price_stop / thesis_broken）→ **SELL**；
-- target_reached → **TRIM**（阶梯）；trap 橙红 → **TRIM**（风险）；
+- 任一硬失效（price_stop / thesis_broken）→ **SELL**；**失效触发不看 target 质量**
+  （target 即使是 very_wide/insufficient，价格/论点失效确认后仍 SELL）；
+- target_reached → **TRIM**（阶梯）；**只有此时**要求 target 质量 ≥B 且 confidence ≥B；
+  trap 橙红 → **TRIM**（风险）；
 - 浮亏 ≥20% 或市值前 5 或用户点名 → 送完整分析（DeepSeek worker）；
 - 其余仓只列表：代码、数量、成本、现价、浮盈亏%、触发状态；**不编目标价**。
 - 今日 KOL routine 已出过卡的票 → 摘要写"见今日该票卡"，不重复分析。

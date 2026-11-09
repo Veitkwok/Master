@@ -43,6 +43,13 @@ user_cash        用户本轮说出的可投现金（无则 null）
 - **target 质量**：只有质量 ≥B 的 target（worker 的 DCF/可比，或 `computed_comps.quality=ok/wide`）
   才能触发 #4/#5/#6/#7 的买入/减仓/卖出；`very_wide`/`insufficient` 的 target 只能
   展示与参考，**不能据此 BUY，也不能仅因价格到 target 触发 TRIM/SELL**。
+- **触发源必须分开（v1.0.27 明确）**：
+  - #4/#5/#6/#7 = **target 触发**，受 target 质量门槛约束；
+  - **#3 = invalidation 触发**，只看失效条件是否按确认窗口成立（价格 3/3 RTH 收盘 /
+    论点破裂），**与 target 质量无关**：即使 target 是 `very_wide`/`insufficient`，
+    只要 invalidation 已确认，仍按 #3 出 `SELL`；
+  - 卡上必须写 `trigger: target | invalidation | trap | overlap | review`，
+    日检按 trigger 检查门槛，不能把"target 是 very_wide"当成 SELL 不合规的理由。
 - **target 触发的 TRIM/SELL 还要求卡片整体 confidence ≥B**；若 grade=C（例如极端 RSI、
   证据弱），即使现价 ≥ target，也只能 `HOLD`+写"target 已到但置信不足，转复核"，
   不能自动减仓/卖出。

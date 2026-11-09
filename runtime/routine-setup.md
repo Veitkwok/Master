@@ -107,6 +107,8 @@
    补跑成功 → 该条标 retried_ok，整体不算 FAIL；补跑仍失败 → 列 FAIL(platform)；
 5) 检查 out/raw 的 *.worker.stdout.json 都是合法 JSON；
 6) 检查卡数 = retained_cases + pending_retains；卡片有 运行:/证据/目标质量/集中度/接近失效；
+   检查 SELL/TRIM 的触发源：trigger=target 才要求 target 质量 ≥B；
+   trigger=invalidation（价格 3/3 RTH 收盘或论点破裂）不看 target 质量；
 7) 输出到 /workspace/master/out/YYYY-MM-DD-daily-report.md，包含：
    PASS/FAIL、每条 routine 状态、platform_failure/app_failure 分类、catch-up 结果；
 8) app_failure 一律 FAIL；platform_failure 只有在 catch-up 后仍失败才 FAIL。

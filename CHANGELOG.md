@@ -1,5 +1,12 @@
 # CHANGELOG · Master pack
 
+## 1.0.27 — 2026-11-09（失效卖出 vs target 质量，规则澄清）
+
+- 明确 stance #3（invalidation 触发）与 #4/#5（target 触发）分开：
+  target 质量门槛只约束 target 触发，**失效卖出不看 target 质量**。
+- 卡字段新增 `trigger`，卡面新增 `触发:` 行；校验清单/日检按 trigger 检查。
+- 修 CRWV/VST 卡被误判"very_wide 与卖出冲突"的问题（实际是 #3 失效触发，合规）。
+
 ## 1.0.26 — 2026-11-05（平台 Activity task failed → 日检 catch-up）
 
 - 日检区分 `platform_failure`（完全没有 run 记录，平台在 Bot 执行前失败）与

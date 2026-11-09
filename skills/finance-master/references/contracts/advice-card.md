@@ -36,6 +36,7 @@ target:
   source: worker_dcf | script_comps | worker_comps | null
   quality: ok | wide | very_wide | insufficient
   confidence_cap: B | C | null          # target 质量带来的“交易上限”，不是证据等级
+trigger: target | invalidation | trap | overlap | review | null   # 动作的触发源
   horizon: 6-12m
 upside_pct: 22.8
 sell_plan:
@@ -80,6 +81,7 @@ asof 2026-10-23 07:34 +08 | 价格时点 2026-10-22 收盘（IBKR）
 现价 $182.40 | 持仓：IBKR 12 股 @ $171.20（+6.5%）| Schwab 无
 stance: 买入（新买）| 证据 B | trap green | priced_in partial
 目标质量: very_wide（cap C，仅参考，不交易）   ← 单独一行，不要写成“显示 C”
+触发: 失效（连续 3 日 RTH 收盘 < $53.50）      ← target 触发时才写“目标 (quality ok/B)”
 买入上限: $186.00（现价不高于上限才买，不追高）
 目标价: $224.00（区间 $205–$243，6–12 月，DCF+可比）| 上行 +22.8%
 卖出计划: $224 减 1/3 → $243 再减 1/3 → 余仓跌破 $158 或论据失效全出
@@ -118,6 +120,8 @@ stance: 买入（新买）| 证据 B | trap green | priced_in partial
 - [ ] `asof` 是卡片生成时刻，且与文件 mtime 差 **≤2 分钟**（先用 run started/finished 当 asof = 不合格）；
 - [ ] **不要把 target quality/cap 写成 confidence**：`证据: B` 只表示置信度；
       target 被限住时另起一行 `目标质量: very_wide（cap C，仅参考，不交易）`；
+- [ ] `SELL/TRIM` 卡必须写 `触发:`；`trigger=target` 才检查 target 质量 ≥B，
+      `trigger=invalidation` 只看失效确认，不受 target 质量影响；
 - [ ] 卡片第一行有 `运行: <status> · <reason>`（每张卡都要，不只摘要）；
 - [ ] **所有卡**都有 `集中度:` 与 `接近失效:` 两行：
       - 已持有（ibkr/schwab/both）：`集中度: top2 同主题 X% ⚠️`（≥80%）；
