@@ -1,5 +1,12 @@
 # CHANGELOG · Master pack
 
+## 1.0.30 — 2026-11-09（override 执行前改判）
+
+- override 契约新增"执行前改判"：追加 `-r2` 记录（`revision_of`/`revision_reason`/
+  `previous_decision`），旧记录保留；日检按同一 revision 链最新一条为准；
+  改判不计入 30 天 2 次上限；执行后不允许改判。
+- HOLD 时 `override_quantity: null`。
+
 ## 1.0.29 — 2026-11-09（override 操作细节）
 
 - override 契约补 `override_quantity`（TRIM 时必填）与写入顺序：

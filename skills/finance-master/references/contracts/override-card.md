@@ -38,7 +38,9 @@ triggered_rule: invalidation.price | invalidation.thesis | target | trap
 trigger_evidence: "11-04/05/06 连续 3 个 RTH 收盘 48.42/43.66/46.40 < 53.50"
 default_action: SELL | TRIM
 override_decision: HOLD | TRIM
-override_quantity: "1/2 of remaining"        # override_decision=TRIM 时必填
+override_quantity: "1/2 of remaining"        # override_decision=TRIM 时必填；HOLD 写 null
+revision_of: null                            # 改判时填上一版 override_id（如 ovr-CRWV-20261109）
+revision_reason: null                        # 改判原因（执行前才允许）
 override_reason: fundamental_improvement | earnings_pending | thesis_intact | tax_or_liquidity | other
 override_reason_text: "一句可证伪的覆盖理由"
 evidence: ["来源/日期/链接（不许用训练数据）"]
@@ -103,6 +105,17 @@ schwab_trade: forbidden
 8. 用户没明确说"确认覆盖"→ 不得生成；Bot 只能"建议选项"，不能替用户决定。
 
 ---
+
+## 6. 改判 / 撤销（执行前）
+
+- **执行前**用户改主意（如 TRIM → HOLD）→ 允许改判，不新增"第 2 次 override"计数：
+  1. 追加一条新记录：`override_id: ovr-<SYM>-<DATE>-r2`、`revision_of: 原 id`、
+     `revision_reason`、`previous_decision`、`override_decision` / `override_quantity` 用新值；
+  2. 旧记录保持原样（JSONL 不删），日检按 **同一 `revision_of` 链上最新一条**为准；
+  3. 卡面文件更新为 r2（文件名不变，内容标注 `rev 2`）；
+  4. `sync_retain` 一条 `OVERRIDE-<TICKER>-<DATE>-r2` case（旧 case 保留）。
+- **执行后**不允许改判；若仓位已变，只能为**剩余仓位**新建 override。
+- 改判不计入"同票同失效 30 天最多 2 次"；只有真正的新失效/新决策才计数。
 
 ## 5. 日检规则
 
