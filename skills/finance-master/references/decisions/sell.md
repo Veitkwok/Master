@@ -48,6 +48,8 @@ invalidation_price = round(max(candidates), 2)    # 取更紧（更高）的一�
 | 论点被新证据推翻（未到目标价） | **清仓或降至观察仓**，写原因 |
 
 - 用户偏好简单模式时：可改成"到 target.base 全出 + 失效全出"；默认用阶梯。
+- 用户决定不执行 SELL/TRIM → 必须写 `contracts/override-card.md`；没有 override 的
+  "继续持有"视为不合规，日检报 `missing_override`。
 - 分批比例、止损百分比写在 pack `config`（默认 1/3、1/3、15%），不在卡上即兴发挥。
 - 没有 target 时不编阶梯，只写"失效触发即全出"。
 

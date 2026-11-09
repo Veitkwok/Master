@@ -86,6 +86,7 @@ result_note: "可选，不带保证收益话术"
 
 - 用 Bot 的 Hindsight 连接器 `hindsight-sherlock-cf` 的 `sync_retain`
   （document_id 按上面规则）。
+- **每张 override 决策卡**写一条 `OVERRIDE-<TICKER>-<YYYYMMDD>` case（含理由/复核日/风险接受）；
 - **每张最终建议卡都要写一条 case**（不是只写 1–2 张）；run 结束前核对本 run 卡数 =
   sync_retain 条数（允许 = 已写入 + 队列），并把 document_id 写进 `state/runs` 的
   `retained_cases[]`。

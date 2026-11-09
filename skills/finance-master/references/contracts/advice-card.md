@@ -127,7 +127,9 @@ stance: 买入（新买）| 证据 B | trap green | priced_in partial
       - 已持有（ibkr/schwab/both）：`集中度: top2 同主题 X% ⚠️`（≥80%）；
         `接近失效: 未触发` 或 `⚠️ 接近失效: 差 X%（连续 3 日中的第 N 日）`；
       - 未持有（neither）：`集中度: n/a（未持有）`、`接近失效: n/a（未持有）`；
-- [ ] 同票同日只有一张卡（查 `advice/` 状态）。
+- [ ] 同票同日只有一张卡（查 `advice/` 状态）；
+- [ ] 若规则要求 SELL/TRIM 但决定不执行 → 必须存在有效
+      `contracts/override-card.md` 记录（review_by 未过期、risk_ack 完整）。
 
 ## 5. 每日摘要格式
 

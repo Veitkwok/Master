@@ -50,6 +50,9 @@ user_cash        用户本轮说出的可投现金（无则 null）
     只要 invalidation 已确认，仍按 #3 出 `SELL`；
   - 卡上必须写 `trigger: target | invalidation | trap | overlap | review`，
     日检按 trigger 检查门槛，不能把"target 是 very_wide"当成 SELL 不合规的理由。
+- **用户覆盖**：规则要求 SELL/TRIM 但用户决定暂不执行 → 必须按
+  `contracts/override-card.md` 写 override 决策卡（含 review_by 与退出条件）；
+  routine 不得自行 override，也不得把无 override 的 HOLD 当作合规。
 - **target 触发的 TRIM/SELL 还要求卡片整体 confidence ≥B**；若 grade=C（例如极端 RSI、
   证据弱），即使现价 ≥ target，也只能 `HOLD`+写"target 已到但置信不足，转复核"，
   不能自动减仓/卖出。

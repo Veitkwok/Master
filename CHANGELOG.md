@@ -1,5 +1,13 @@
 # CHANGELOG · Master pack
 
+## 1.0.28 — 2026-11-09（override 决策卡）
+
+- 新增 `contracts/override-card.md`：规则要求 SELL/TRIM 但用户决定暂不执行时，
+  必须记录 override（触发证据、默认动作、覆盖决定、理由、风险接受、review_by、退出条件）。
+- 约束：只允许用户在有人的对话中确认；routine 不得自行 override；不可升级动作；
+  ≤30 天复核；同票同失效 30 天内最多 2 次；集中度 >80% 必须写风险接受；
+  每张 override 写 `OVERRIDE-*` case；日检检查 missing/expired override。
+
 ## 1.0.27 — 2026-11-09（失效卖出 vs target 质量，规则澄清）
 
 - 明确 stance #3（invalidation 触发）与 #4/#5（target 触发）分开：

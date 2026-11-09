@@ -13,7 +13,7 @@
 ├── state/
 │   ├── runs/YYYY-MM-DD.json          # 当天各 routine 的运行记录
 │   ├── mentions.jsonl                # 14 日提及（KOL 频率用）
-│   ├── advice/YYYY-MM.jsonl          # 建议卡归档（逐行 JSON）
+│   ├── advice/YYYY-MM.jsonl          # 建议卡/override 归档（逐行 JSON，type=card|override）
 │   ├── pending_candidates.json       # 待用户确认的 Candidate
 │   ├── pending_retains.json          # 记忆写入失败队列（Hindsight 恢复后补写）
 │   ├── watchlists/YYYY-MM-DD.json    # 四张表快照（只读采集）
