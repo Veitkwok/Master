@@ -50,6 +50,9 @@ invalidation_price = round(max(candidates), 2)    # 取更紧（更高）的一�
 - 用户偏好简单模式时：可改成"到 target.base 全出 + 失效全出"；默认用阶梯。
 - 用户决定不执行 SELL/TRIM → 必须写 `contracts/override-card.md`；没有 override 的
   "继续持有"视为不合规，日检报 `missing_override`。
+- **已确认失效不因价格收回而撤销**：3/3 RTH 收盘确认后，价格重新站上失效价只作观察；
+  不得因此 BUY/ADD，也不得写"回补/加回 1/3"这类暗示买入的动作；卡上写
+  "价格重回 X 上方，但失效已确认，覆盖状态不变"。
 - 分批比例、止损百分比写在 pack `config`（默认 1/3、1/3、15%），不在卡上即兴发挥。
 - 没有 target 时不编阶梯，只写"失效触发即全出"。
 

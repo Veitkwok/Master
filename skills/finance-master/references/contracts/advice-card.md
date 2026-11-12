@@ -37,6 +37,18 @@ target:
   quality: ok | wide | very_wide | insufficient
   confidence_cap: B | C | null          # target 质量带来的“交易上限”，不是证据等级
 trigger: target | invalidation | trap | overlap | review | null   # 动作的触发源
+earnings: null | {                    # 财报窗口有数据时才填
+  window: preview | review,
+  event_date: "2026-11-11",
+  eps: {actual: 1.23, consensus: 1.20, surprise_pct: 2.5, basis: adjusted},
+  revenue: {actual: 1.52e9, consensus: 1.50e9, surprise_pct: 1.3},
+  guidance: raised | maintained | lowered | withdrawn | unknown,
+  reaction_rth_pct: 24.7,
+  reaction_ah_pct: 17.0,
+  exit_condition_flag: false,
+  sources: ["<press release URL>", "<consensus URL>"],
+  asof: "2026-11-12T08:30:00+08:00"
+}
   horizon: 6-12m
 upside_pct: 22.8
 sell_plan:

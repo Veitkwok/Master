@@ -1,5 +1,15 @@
 # CHANGELOG · Master pack
 
+## 1.0.31 — 2026-11-12（财报前瞻/复盘 + 手工账户 + 失效语义）
+
+- 新增 `decisions/earnings.md`：财报窗口 preview（未来 7 天）/ review（发布后 3 个交易日），
+  实际 vs 一致预期、指引、RTH/盘后反应；数字必须有来源，查不到留空；只作证据不改 stance。
+- 超预期判定带容差（EPS ±1%、营收 ±0.5%）；容差内 `technical_miss` 不构成退出条件。
+- 持仓复核优先给财报窗口持仓分析名额；卡增加 `earnings` 段；日检核对来源/数字。
+- 新增手工账户（如汇丰）契约：source=manual、as_of、只读、计入集中度、>5 交易日 stale。
+- 明确"已确认失效不因价格收回而撤销"；禁止"回补/加回"式买入措辞。
+- 本版为 canonical 实现；Bot 本地 v1.0.31 需回到 origin/main（分支保留）。
+
 ## 1.0.30 — 2026-11-09（override 执行前改判）
 
 - override 契约新增"执行前改判"：追加 `-r2` 记录（`revision_of`/`revision_reason`/

@@ -56,6 +56,11 @@ target_priority: [worker_dcf, script_comps, worker_comps]  # worker comps 仅可
 fundamentals_cache_hours: 24          # 跨日重抓
 earnings_refresh_days: 3              # 财报前后 3 天强制刷新
 save_stdout: true                     # out/raw/ 保留原样输出
+earnings_preview_days: 7              # 未来 7 天内财报 -> preview
+earnings_review_trading_days: 3       # 发布后 3 个交易日内 -> review
+earnings_surprise_tolerance:
+  eps_pct: 1.0                        # ±1% 内算 inline
+  revenue_pct: 0.5                    # ±0.5% 内算 inline
 trim_sell_min_confidence: B           # target 触发的 TRIM/SELL 还需整体 grade ≥B
 
 # Candidate

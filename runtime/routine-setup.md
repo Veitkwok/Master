@@ -111,7 +111,10 @@
    trigger=invalidation（价格 3/3 RTH 收盘或论点破裂）不看 target 质量；
    失效已触发但当日为 HOLD/TRIM → 必须有有效 override（active、未过期、risk_ack 完整）；
    没有 → FAIL(missing_override)；过期 → FAIL(override_expired)；
-7) 输出到 /workspace/master/out/YYYY-MM-DD-daily-report.md，包含：
+7) 检查财报窗口卡：持仓在财报窗口（未来 7 天 / 发布后 3 个交易日）内的卡必须有
+   `财报:` 段；数字必须有来源 URL + asof；缺来源或数字不一致 → app_failure；
+   无财报窗口的票不要求该段；
+8) 输出到 /workspace/master/out/YYYY-MM-DD-daily-report.md，包含：
    PASS/FAIL、每条 routine 状态、platform_failure/app_failure 分类、catch-up 结果；
 8) app_failure 一律 FAIL；platform_failure 只有在 catch-up 后仍失败才 FAIL。
 不要写 watchlist、不下单、不发邮件。

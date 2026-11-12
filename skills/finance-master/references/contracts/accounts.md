@@ -74,6 +74,14 @@
 
 ---
 
+### 手工账户（如汇丰）
+
+- 允许用户手工录入非 IBKR/Schwab 持仓：
+  `account: manual`, `source: manual`, `manual: {broker, as_of, entered_by, confirmed_at}`；
+- 只读：不连接、不下单、不写 watchlist；卡上标"手工录入（as_of）"；
+- 计入集中度与持仓总市值；`as_of` 超过 5 个交易日 → 记 `manual_stale` 缺口；
+- 用户更新数字前不自动覆盖；以最后一次确认为准。
+
 ## 5. 提及日志（供频率统计）
 
 - 路径与 schema 见 `runtime/state.md`（`state/mentions.jsonl`）。
