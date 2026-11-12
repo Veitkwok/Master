@@ -17,7 +17,7 @@
 | Hindsight | `get_bank` / `recall` / `sync_retain`（连接器 `hindsight-sherlock-cf`） | 读写（仅 sherlock） | `get_bank` 一次 |
 | Schwab（Plaid/Finance） | 持仓、交易记录 | 只读 | 读一次 positions |
 | Web 浏览/搜索 | 财报、发行商页、新闻 | 只读 | 打开一个页面 |
-| 文件/状态 | /workspace 读写 | 读写 | 写一个临时文件 |
+| 文件/状态 | /workspace 读写，含 `state/manual_holdings.json`（只读于 routine） | 读写 | 写一个临时文件 |
 | Python/终端 | DeepSeek worker、校验脚本 | 执行 | `python3 --version` |
 | Secret | DEEPSEEK_API_KEY | 只读（环境变量） | 检查是否存在（不打印值） |
 | 交付 | 聊天、文件、Page | 写 | 直接使用 |
@@ -33,6 +33,7 @@
 3. hindsight = try(recall ticker or generic) -> live / down
 4. schwab = connector present ? try(read positions) : skip
 5. state = try(write /workspace/master/state/.probe) -> ok / readonly
+   also note whether state/manual_holdings.json exists and its oldest as_of
 6. deepseek = only when analysis needed -> scripts/deepseek_analyze.py --selftest
 ```
 

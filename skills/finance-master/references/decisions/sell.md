@@ -61,7 +61,8 @@ invalidation_price = round(max(candidates), 2)    # 取更紧（更高）的一�
 - 计算 top-2 同主题/同因子（如 AI 开支、半导体、能源）占持仓市值比例；
 - ≥80%，或单一持仓 ≥50% → 在摘要与 `risk.key_risks` 标注「集中度风险」；
 - 不因此自动改变 stance，但要在卡上提示"可讨论减仓/对冲/提高现金"。
-- 不用记忆里的旧持仓；以本轮 IBKR + Schwab 为准。
+- 不用记忆里的旧持仓；以本轮 IBKR + Schwab + 手工券商（`state/manual_holdings.json`）
+  合并后的市值为准，价格一律用本轮 IBKR 现价。
 
 ### 2.2 接近失效提醒
 
@@ -102,6 +103,15 @@ for each position:
 - 只读：卡上写"嘉信只读，需你手动执行"。
 - 可与 IBKR 合并判断（`position_context: both`），但执行渠道分开写。
 - 不生成嘉信订单，不把嘉信仓写成 IBKR 草稿，不声称已卖出。
+
+## 4.1 手工券商仓位（如汇丰，v1.0.32）
+
+- 无连接器。数量与成本来自 `state/manual_holdings.json`，由用户当面告知。
+- 与 IBKR / Schwab 合并判断；仅汇丰时 `context: hsbc`，与其他券商组合时 `multi`。
+- 卡上写拆分数量，并注明"汇丰数量为手工录入（as_of，有过期风险）"；
+  as_of 超过 30 天必须在缺口提醒用户确认，不猜、不改数量。
+- 执行渠道写"汇丰需你手动执行"。不生成任何订单或草稿，不把汇丰仓写成 IBKR 草稿，
+  不声称已卖出。routine 不得改写该文件。
 
 ---
 

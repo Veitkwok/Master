@@ -27,6 +27,12 @@ Environment overrides (optional):
     DEEPSEEK_THINKING       on|off (default: per job mode)
     DEEPSEEK_TIMEOUT        seconds (default 240)
 
+Earnings (v1.0.31): when a ticker in the pack carries
+symbols.<SYM>.earnings.phase = preview|recap, the matching earnings GUIDE plus
+scripts/worker_earnings.md are appended after the fixed system files, and each
+flagged ticker gets a deterministic `computed_earnings`. Jobs without that flag
+build exactly the same system prompt as before.
+
 Exit codes (the Bot acts on these):
     0 ok | 2 config/auth | 3 network | 4 invalid JSON output |
     5 output truncated | 6 rate-limited/5xx after retries | 7 timeout
@@ -90,6 +96,18 @@ DEEP_EXTRA_FILES = [
     "references/engine/modules/deep-analysis/GUIDE.md",
     "references/engine/docs/reference/research-bias-checklist.md",
 ]
+# Loaded ONLY when the pack flags a ticker with symbols.<SYM>.earnings.phase
+# (holdings earnings window, v1.0.31). Appended after the fixed files so the
+# cached system prefix of non-earnings jobs is unchanged.
+EARNINGS_PHASES = ("preview", "recap")
+EARNINGS_EXTRA_FILES = {
+    "preview": ["references/engine/modules/earnings-preview/GUIDE.md"],
+    "recap": ["references/engine/modules/earnings-recap/GUIDE.md"],
+}
+EARNINGS_WORKER_FILE = "scripts/worker_earnings.md"
+GUIDANCE_DIRECTIONS = {"raised", "maintained", "lowered", "none"}
+EARNINGS_TOLERANCE_EPS_PCT = float(os.environ.get("EARNINGS_EPS_TOLERANCE_PCT", "1.0"))
+EARNINGS_TOLERANCE_REVENUE_PCT = float(os.environ.get("EARNINGS_REVENUE_TOLERANCE_PCT", "0.5"))
 
 MAX_PACK_CHARS = 400_000
 ANCHOR = json.dumps(
@@ -115,8 +133,13 @@ def read_key() -> str:
     return os.environ.get("DEEPSEEK_API_KEY", "").strip()
 
 
-def build_system(mode: str) -> tuple[str, str]:
+def build_system(mode: str, earnings_phases=()) -> tuple[str, str]:
     files = list(SYSTEM_FILES) + (DEEP_EXTRA_FILES if mode == "deep" else [])
+    phases = [ph for ph in EARNINGS_PHASES if ph in set(earnings_phases or ())]
+    for ph in phases:
+        files += EARNINGS_EXTRA_FILES[ph]
+    if phases:
+        files.append(EARNINGS_WORKER_FILE)
     parts = []
     for rel in files:
         path = SKILL / rel
@@ -311,6 +334,138 @@ def compute_comps(pack: dict) -> dict:
             ))
             best = dict(lenses[0])
             out[sym] = best
+    return out
+
+
+def earnings_flags(pack: dict) -> dict:
+    """{SYM: phase} for tickers whose pack carries earnings.phase preview|recap."""
+    flags = {}
+    for sym, t in _tickers_map(pack).items():
+        e = t.get("earnings") if isinstance(t, dict) else None
+        if isinstance(e, dict) and e.get("phase") in EARNINGS_PHASES:
+            flags[sym] = e["phase"]
+    return flags
+
+
+def _range_mid(lo, hi):
+    if _num(lo) and _num(hi):
+        return (float(lo) + float(hi)) / 2
+    if _num(lo):
+        return float(lo)
+    if _num(hi):
+        return float(hi)
+    return None
+
+
+def _guidance_items(g) -> list[dict]:
+    if isinstance(g, dict):
+        return [g]
+    if isinstance(g, list):
+        return [x for x in g if isinstance(x, dict)]
+    return []
+
+
+def compute_earnings(pack: dict) -> dict:
+    """Deterministic earnings arithmetic from the pack (not the model).
+
+    recap: actual vs estimate variance + label (sign only, no band), guidance
+    direction (numeric midpoint new vs prior, else the pack's sourced direction),
+    price reaction from pack prices, and exit_flags for the human/override check.
+    preview: echoes the sourced consensus only. Missing inputs -> null + fields_gap.
+    """
+    out: dict = {}
+    for sym, t in _tickers_map(pack).items():
+        e = t.get("earnings") if isinstance(t, dict) else None
+        if not isinstance(e, dict) or e.get("phase") not in EARNINGS_PHASES:
+            continue
+        phase = e["phase"]
+        gaps: list[str] = []
+        res: dict = {
+            "phase": phase,
+            "report_date": e.get("report_date"),
+            "timing": e.get("timing"),
+            "quarter": e.get("quarter"),
+            "source_url": e.get("source_url"),
+        }
+        if not e.get("report_date"):
+            gaps.append("earnings.report_date")
+        if not e.get("source_url"):
+            gaps.append("earnings.source_url")
+        if phase == "preview":
+            cons = e.get("consensus") or {}
+            res["consensus"] = {
+                "eps": cons.get("eps") if _num(cons.get("eps")) else None,
+                "revenue": cons.get("revenue") if _num(cons.get("revenue")) else None,
+                "asof": cons.get("asof"),
+                "source_url": cons.get("source_url"),
+            }
+            for k in ("eps", "revenue"):
+                if res["consensus"][k] is None:
+                    gaps.append(f"earnings.consensus.{k}")
+        else:
+            actual = e.get("actual") or {}
+            est = e.get("estimate") or {}
+            for k in ("eps", "revenue"):
+                a, b = actual.get(k), est.get(k)
+                if _num(a) and _num(b) and b != 0:
+                    var = (a - b) / abs(b) * 100
+                    tol = (EARNINGS_TOLERANCE_EPS_PCT if k == "eps"
+                           else EARNINGS_TOLERANCE_REVENUE_PCT)
+                    if var > tol:
+                        label = "beat"
+                    elif var < -tol:
+                        label = "miss"
+                    else:
+                        label = "inline"
+                    technical = bool(a < b and label == "inline")
+                    res[k] = {"actual": a, "estimate": b, "variance_pct": round(var, 2),
+                              "label": label, "technical_miss": technical}
+                else:
+                    res[k] = None
+                    gaps.append(f"earnings.actual/estimate.{k}")
+            items = []
+            for g in _guidance_items(e.get("guidance")):
+                new_mid = _range_mid(g.get("new_low"), g.get("new_high"))
+                prior_mid = _range_mid(g.get("prior_low"), g.get("prior_high"))
+                if new_mid is not None and prior_mid is not None:
+                    direction = ("raised" if new_mid > prior_mid
+                                 else "lowered" if new_mid < prior_mid else "maintained")
+                    basis = "computed_midpoint"
+                elif g.get("direction") in GUIDANCE_DIRECTIONS:
+                    direction, basis = g["direction"], "pack_sourced"
+                else:
+                    direction, basis = None, None
+                items.append({"item": g.get("item"), "direction": direction, "basis": basis,
+                              "new_mid": new_mid, "prior_mid": prior_mid})
+            dirs = [i["direction"] for i in items if i["direction"]]
+            if "lowered" in dirs:
+                overall = "lowered"
+            elif "raised" in dirs:
+                overall = "raised"
+            elif "maintained" in dirs:
+                overall = "maintained"
+            elif "none" in dirs:
+                overall = "none"
+            else:
+                overall = None
+                gaps.append("earnings.guidance")
+            res["guidance"] = {"direction": overall, "items": items}
+            pr = e.get("price_reaction") or {}
+            base, last = pr.get("prior_close"), pr.get("last")
+            if _num(base) and _num(last) and base > 0:
+                res["price_reaction"] = {"prior_close": base, "last": last,
+                                         "pct": round((last / base - 1) * 100, 2),
+                                         "session": pr.get("session"), "asof": pr.get("asof")}
+            else:
+                res["price_reaction"] = None
+                gaps.append("earnings.price_reaction")
+            res["exit_flags"] = {
+                "eps_miss": (res["eps"]["label"] == "miss") if res.get("eps") else None,
+                "revenue_miss": (res["revenue"]["label"] == "miss") if res.get("revenue") else None,
+                "guide_lowered": (overall == "lowered") if overall else None,
+            }
+        res["fields_gap"] = gaps
+        out[sym] = res
     return out
 
 
@@ -579,7 +734,8 @@ def run_analysis(job: dict, key: str) -> int:
         print("jobcheck: incomplete -> exit 8 (no API call)", file=sys.stderr)
         return 8
     thinking = os.environ.get("DEEPSEEK_THINKING") or ("off" if mode == "routine" else "on")
-    system, system_sha = build_system(mode)
+    eflags = earnings_flags(pack)
+    system, system_sha = build_system(mode, set(eflags.values()))
     timeout = int(os.environ.get("DEEPSEEK_TIMEOUT", "240"))
 
     body = request_body(system, job, mode, thinking)
@@ -670,10 +826,18 @@ def run_analysis(job: dict, key: str) -> int:
         return 5 if truncated else 4
 
     computed = compute_comps(pack)
+    computed_e = compute_earnings(pack)
     for t in result.get("tickers", []):
         sym = t.get("symbol")
         if sym in computed:
             t["computed_comps"] = computed[sym]
+        if sym in computed_e:
+            t["computed_earnings"] = computed_e[sym]
+            if not isinstance(t.get("earnings"), dict):
+                result.setdefault("warnings", []).append(
+                    f"{sym}: earnings window flagged but worker returned no earnings block")
+        elif "earnings" in t:
+            t.pop("earnings", None)   # not flagged -> do not surface model-only earnings
 
     used_thinking = "disabled" if isinstance(body.get("thinking"), dict) and \
         body["thinking"].get("type") == "disabled" else "enabled"
@@ -685,6 +849,7 @@ def run_analysis(job: dict, key: str) -> int:
         "thinking": used_thinking,
         "request_id": usage.get("request_id", ""),
         "system_sha256": system_sha,
+        "earnings_phases": sorted(set(eflags.values())),
         "prompt_sha256": sha256(compact(job_payload(job))),
         "cache": {
             "hit": usage.get("prompt_cache_hit_tokens", 0),
@@ -740,6 +905,9 @@ def run_analysis(job: dict, key: str) -> int:
                 "key_risks": t.get("key_risks", []),
                 "fields_gap": t.get("fields_gap", []),
                 "computed_comps": t.get("computed_comps"),
+                **({"earnings": t.get("earnings"),
+                    "computed_earnings": t.get("computed_earnings")}
+                   if "computed_earnings" in t else {}),
             }
             for t in result.get("tickers", [])
         ],
@@ -771,6 +939,8 @@ def selftest(ping: bool) -> int:
     try:
         report["system_chars"]["routine"] = len(build_system("routine")[0])
         report["system_chars"]["deep"] = len(build_system("deep")[0])
+        report["system_chars"]["routine+earnings"] = len(
+            build_system("routine", EARNINGS_PHASES)[0])
     except FileNotFoundError as exc:
         report["files_ok"] = False
         report["error"] = str(exc)
@@ -821,6 +991,9 @@ def main() -> int:
         for mode in ("routine", "deep"):
             system, digest = build_system(mode)
             print(f"{mode}: chars={len(system)} sha256={digest}", file=sys.stderr)
+        for ph in EARNINGS_PHASES:
+            system, digest = build_system("routine", [ph])
+            print(f"routine+{ph}: chars={len(system)} sha256={digest}", file=sys.stderr)
         return 0
 
     try:

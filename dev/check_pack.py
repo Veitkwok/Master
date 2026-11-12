@@ -59,7 +59,12 @@ REQUIRED_FILES = [
     "references/engine/modules/etf/GUIDE.md",
     "references/engine/modules/x-advanced-research/GUIDE.md",
     "references/engine/docs/reference/priced-in-checklist.md",
+    "references/engine/modules/earnings-preview/GUIDE.md",
+    "references/engine/modules/earnings-recap/GUIDE.md",
     "scripts/deepseek_analyze.py",
+    "scripts/worker_prompt.md",
+    "scripts/worker_earnings.md",
+    "scripts/merge_holdings.py",
 ]
 
 CORE_FILES = [

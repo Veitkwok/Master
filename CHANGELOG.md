@@ -1,14 +1,50 @@
 # CHANGELOG · Master pack
 
-## 1.0.31 — 2026-11-12（财报前瞻/复盘 + 手工账户 + 失效语义）
+## 1.0.33 — 2026-11-12（合并 Bot 本地 v1.0.31 + v1.0.32；canonical 对账版）
 
-- 新增 `decisions/earnings.md`：财报窗口 preview（未来 7 天）/ review（发布后 3 个交易日），
-  实际 vs 一致预期、指引、RTH/盘后反应；数字必须有来源，查不到留空；只作证据不改 stance。
-- 超预期判定带容差（EPS ±1%、营收 ±0.5%）；容差内 `technical_miss` 不构成退出条件。
-- 持仓复核优先给财报窗口持仓分析名额；卡增加 `earnings` 段；日检核对来源/数字。
-- 新增手工账户（如汇丰）契约：source=manual、as_of、只读、计入集中度、>5 交易日 stale。
-- 明确"已确认失效不因价格收回而撤销"；禁止"回补/加回"式买入措辞。
-- 本版为 canonical 实现；Bot 本地 v1.0.31 需回到 origin/main（分支保留）。
+- **导入 Bot 本地实现**：v1.0.31（7ab4d60）财报 preview/recap + v1.0.32（3c3dae8）
+  手工券商仓/汇丰合并；两个提交按顺序合并，非分叉发布。
+- **canonical 调整**：财报超预期带容差（EPS ±1%、营收 ±0.5%，容差内 technical miss
+  不构成退出）；日检核对 earnings 来源/数字；去重合并 v1.0.31 两套 earnings 定义；
+  统一术语 preview/recap；保留"已确认失效不因价格收回而撤销"与 override 规则。
+- 结果：单一 `main` 分支；Bot 直接 `git reset --hard origin/main` 即与 canonical 一致，
+  不再保留本地分叉提交。
+
+## 1.0.32 — 2026-11-11（持仓复核接入手工券商仓 / 汇丰）
+
+- 新增 `state/manual_holdings.json`（技能包外，不进 git）：记录无连接器的券商仓（如汇丰）。
+  routine **只读**；只在用户当面告知买卖后更新。as_of 超过 30 个自然日 → 缺口
+  `manual_holdings.stale`，提醒确认，不猜、不改数量。
+- 新增 `scripts/merge_holdings.py`：把 IBKR + Schwab + 手工仓按代码合并，计算加权成本
+  与（本轮 IBKR 现价）市值、券商拆分字符串（如 `MOS 35（IBKR 5+Schwab 3+HSBC 27）`）、
+  集中度；不得把 stdout 重定向进 `out/raw/`。文件不存在 = 无手工仓，行为与 1.0.31 相同。
+- holdings runbook / data-pack / advice-card / sell / stance：合并后的每一只（含仅手工
+  持有的，如 AVGO）都算已持仓，走同一套轻量检查与财报窗口（preview/recap）；
+  集中度按合并市值重算。`position.context` 新增 `hsbc` / `manual` / `multi`
+  （`both` 仍表示仅 IBKR+Schwab，旧卡兼容）。
+- 安全边界不变：不下单、不写 watchlist、嘉信只读、汇丰也不下单。未改决策表门槛。
+- `dev/validate_card.py` 接受新 context；新增 `dev/tests/test_holdings_merge.py`；
+  check_pack 必需文件加 `scripts/merge_holdings.py`。
+
+## 1.0.31 — 2026-11-12（财报 preview/recap 接入 holdings；Bot 本地实现 + canonical 调整）
+
+- **Bot 本地 7ab4d60 实现**：holdings runbook 新增 §3.1 财报窗口判定（ET、NYSE 交易日）：
+  本季新闻稿已发布且反应交易日起已收盘 RTH ≤3 日 → **recap**；否则下次财报在 7 个自然日内
+  → **preview**；两者互斥、recap 优先；财报日已过但找不到新闻稿 → 按 preview + 缺口，不猜结果。
+  分析名额排序 recap > preview > 其他。
+- 数据包新增可选 `symbols.<SYM>.earnings` 块（data-pack §2.2）；worker 脚本**只在有该块时**
+  追加 earnings-preview / earnings-recap GUIDE + `scripts/worker_earnings.md`；
+  其余 job 的 system 与 1.0.30 逐字相同（缓存前缀不变、token 不增）。引擎文件未改，hash 不变。
+- 脚本新增确定性 `computed_earnings`（EPS/营收 variance、指引中点比较、IBKR 价格反应 %、
+  `exit_flags`）；卡上数字以它为准；worker 漏 `earnings` 只记 warning。
+- 建议卡新增可选 `earnings` 块与 `财报:` 行；有 active override 且含财报类退出条款、
+  `exit_flags` 命中时写 `⚠️ 覆盖退出条件已出现`（只提示，routine 不改判、不下单）。
+- **canonical 调整**：超预期判定带容差（EPS ±1%、营收 ±0.5%，容差内 technical miss 不构成退出）；
+  日检核对 earnings 来源/数字；持仓复核优先给财报窗口持仓分析名额；手工账户（汇丰）契约；
+  明确"已确认失效不因价格收回而撤销"，禁止"回补/加回"式买入措辞。
+- **决策表不变**：stance / target / sell / override 逻辑未改，财报只是证据。
+- `dev/validate_card.py` 校验 earnings 块；新增 `dev/tests/test_earnings.py`（30 例）；
+  check_pack 必需文件增加 earnings GUIDE 与 `worker_earnings.md`。
 
 ## 1.0.30 — 2026-11-09（override 执行前改判）
 

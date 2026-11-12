@@ -52,7 +52,8 @@ IBKR down → 继续采集 X 与 Web，但本轮**不出买入/卖出卡**（只
      - 不能用"感觉贵/便宜"凑目标价，不能编倍数。
    - X：本轮该账号帖子（≤8 条，含链接）；
    - Hindsight：按 ticker recall；
-   - positions：IBKR 全量 + Schwab（若可用）。
+   - positions：IBKR 全量 + Schwab（若可用）+ `state/manual_holdings.json`（若有）；
+     已持有（含仅手工持有）的票不进 Candidate。
 4. 每只票记录 `source: primary`、`kol_evidence`（原句 + 链接）。
 
 ---

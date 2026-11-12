@@ -37,18 +37,6 @@ target:
   quality: ok | wide | very_wide | insufficient
   confidence_cap: B | C | null          # target 质量带来的“交易上限”，不是证据等级
 trigger: target | invalidation | trap | overlap | review | null   # 动作的触发源
-earnings: null | {                    # 财报窗口有数据时才填
-  window: preview | review,
-  event_date: "2026-11-11",
-  eps: {actual: 1.23, consensus: 1.20, surprise_pct: 2.5, basis: adjusted},
-  revenue: {actual: 1.52e9, consensus: 1.50e9, surprise_pct: 1.3},
-  guidance: raised | maintained | lowered | withdrawn | unknown,
-  reaction_rth_pct: 24.7,
-  reaction_ah_pct: 17.0,
-  exit_condition_flag: false,
-  sources: ["<press release URL>", "<consensus URL>"],
-  asof: "2026-11-12T08:30:00+08:00"
-}
   horizon: 6-12m
 upside_pct: 22.8
 sell_plan:
@@ -62,11 +50,14 @@ sell_plan:
   invalidation_thesis: "下季指引下调 / 连续 3 日收盘 < 50 日线"
   review_by: 2027-02-20      # 下次财报或 90 天
 position:
-  context: neither | ibkr | schwab | both
-  qty: null
-  avg_cost: null
-  market_value: null
+  context: neither | ibkr | schwab | both | hsbc | manual | multi
+  # both = 仅 IBKR+Schwab（兼容旧卡）；hsbc = 仅汇丰；manual = 仅其他手工券商；
+  # multi = 任一其他多券商组合（如 IBKR+汇丰、三家都有）
+  qty: null                  # 合并后总股数
+  avg_cost: null             # 各券商加权平均成本
+  market_value: null         # 总股数 × 本轮 IBKR 现价
   unrealized_pct: null
+  brokers: []                # 可选；按券商拆分（qty / avg_cost / origin=live|manual / as_of）
   cash_note: "用户未说现金 → 不写金额"
 risk:
   trap_level: green | yellow | orange | red | null
@@ -77,6 +68,21 @@ risk:
   key_risks: ["客户集中度"]
   overlap: ["已持 QQQ，科技暴露叠加"]
   concentration: "top2 AI capex 93% | null"   # 持仓复核用；≥80% 必须标注
+earnings:                    # 可选（v1.0.31）：仅 holdings 财报窗口内的持仓；其他卡不写此键
+  phase: preview | recap
+  report_date: "2026-11-10"
+  timing: BMO | AMC | unknown
+  quarter: "Q3 2026"
+  source_url: "https://..."  # 必填
+  headline: "一句（数字来自 computed_earnings）"
+  consensus: {eps: 1.10, revenue: null, asof: "2026-11-09"}         # preview
+  eps: {actual: -0.20, estimate: -0.25, variance_pct: 20.0, label: beat}   # recap；beat|inline|miss
+  revenue: {actual: 1.3e9, estimate: 1.4e9, variance_pct: -7.14, label: miss}
+  guidance_direction: raised | maintained | lowered | none | null   # recap
+  price_reaction_pct: -10.0  # recap；写 session（post/regular）
+  exit_flags: {eps_miss: false, revenue_miss: true, guide_lowered: true}  # recap；照抄 computed_earnings
+  override_exit_hit: true | false | null   # 有 active override 且含财报类退出条款时
+  override_note: "覆盖退出条件『指引下调』已出现，需你在对话里决定"   # override_exit_hit=true 必填
 data_gaps: []
 analysis_source: deepseek | bot-inline | mixed
 order_sent: false
@@ -91,6 +97,8 @@ draft_created: false
 ## NVDA · 买入候选 · primary_babybus
 asof 2026-10-23 07:34 +08 | 价格时点 2026-10-22 收盘（IBKR）
 现价 $182.40 | 持仓：IBKR 12 股 @ $171.20（+6.5%）| Schwab 无
+                                               ← 多券商写拆分：MOS 35（IBKR 5+Schwab 3+HSBC 27）@ $20.33；
+                                                 手工腿加：HSBC 数量为手工录入（as_of 2026-11-11，有过期风险）
 stance: 买入（新买）| 证据 B | trap green | priced_in partial
 目标质量: very_wide（cap C，仅参考，不交易）   ← 单独一行，不要写成“显示 C”
 触发: 失效（连续 3 日 RTH 收盘 < $53.50）      ← target 触发时才写“目标 (quality ok/B)”
@@ -101,6 +109,10 @@ stance: 买入（新买）| 证据 B | trap green | priced_in partial
 复核: 下次财报（2027-02 前后）或 90 天
 风险: 客户集中度；10Y +50bp → DCF −8% | 重叠: 已持 QQQ
 集中度: n/a（未持有）| 接近失效: n/a（未持有）   ← 每张卡都要有这两行
+财报: 复盘 Q3（11-10 盘后）EPS -$0.20 vs 预期 -$0.25（+20.0%，beat）| 营收 $1.30B vs $1.40B（−7.1%，miss）| 指引 下调 | 盘后 −10.0%（IBKR）
+⚠️ 覆盖退出条件已出现: 指引下调 · 需你在对话里决定 · 本 routine 不改判、不下单
+                                               ← 这两行只在财报窗口内的持仓卡出现（preview 写
+                                                  `财报: 前瞻 Q3（11-14 盘前）一致预期 EPS $1.10 / 营收 DATA_GAP · 看点: …`）
 缺口: 无 | 分析: deepseek
 未下单 · 未写嘉信 · 本卡不构成委托
 ```
@@ -136,12 +148,17 @@ stance: 买入（新买）| 证据 B | trap green | priced_in partial
       `trigger=invalidation` 只看失效确认，不受 target 质量影响；
 - [ ] 卡片第一行有 `运行: <status> · <reason>`（每张卡都要，不只摘要）；
 - [ ] **所有卡**都有 `集中度:` 与 `接近失效:` 两行：
-      - 已持有（ibkr/schwab/both）：`集中度: top2 同主题 X% ⚠️`（≥80%）；
+      - 已持有（ibkr/schwab/both/hsbc/manual/multi）：`集中度: top2 同主题 X% ⚠️`（≥80%，含手工仓市值）；
         `接近失效: 未触发` 或 `⚠️ 接近失效: 差 X%（连续 3 日中的第 N 日）`；
+        有手工腿时写拆分数量、加权成本与 as_of 手工录入注释；
       - 未持有（neither）：`集中度: n/a（未持有）`、`接近失效: n/a（未持有）`；
 - [ ] 同票同日只有一张卡（查 `advice/` 状态）；
 - [ ] 若规则要求 SELL/TRIM 但决定不执行 → 必须存在有效
       `contracts/override-card.md` 记录（review_by 未过期、risk_ack 完整）。
+- [ ] 有 `earnings` 块时：`phase` ∈ preview/recap、有 `report_date` 与 `source_url`；
+      recap 的 label 与 actual/estimate 一致、`exit_flags` 与 label/指引方向一致（不许藏 miss）；
+      preview 不带 actual/exit_flags；`override_exit_hit: true` 必须有 `override_note`；
+      **earnings 不改变任何 stance 门槛**（`dev/validate_card.py` 校验）。
 
 ## 5. 每日摘要格式
 

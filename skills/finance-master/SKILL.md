@@ -3,7 +3,7 @@ name: finance-master
 description: >
   美股 / ETF 研究与交易建议主技能（Grok Bot）。用于：KOL 推文选股、持仓复核、
   个股与 ETF 深度分析、DCF / 可比估值、目标价、陷阱识别、买入与卖出计划。
-  数据源：IBKR 行情与持仓、X 公开推文、Schwab 只读持仓、Hindsight 记忆。
+  数据源：IBKR 行情与持仓、X 公开推文、Schwab 只读持仓、手工券商仓（如汇丰，无连接器）、Hindsight 记忆。
   触发词：股票、美股、ETF、买不买、目标价、卖出、持仓、财报、估值、KOL、
   止损、风控、复核持仓、深度分析。只研究、只建议，永不自动下单。
 metadata:
@@ -150,7 +150,8 @@ DeepSeek 负责耗 token 的分析与计算；两边都不越界。
 ## 7. 状态与幂等
 
 - 状态根目录：`/workspace/master/state/`（技能包外，更新/重装不丢）。
-- 四本账：`runs/`、`mentions.jsonl`、`advice/`、`pending_candidates.json`；
+- 四本账：`runs/`、`mentions.jsonl`、`advice/`、`pending_candidates.json`；另有
+  `manual_holdings.json`（手工券商仓，routine 只读）。
   schema 与写入规则见 `runtime/state.md`。
 - run 开始先读 `runs/`：决定补跑窗口（≤7 天）、今日已出卡票、未确认 Candidate。
 - routine 失败不自动重试；写失败记录，下一轮按窗口补跑。
@@ -177,7 +178,8 @@ DeepSeek 负责耗 token 的分析与计算；两边都不越界。
 | IBKR 持仓 | 卡片 `position_context: unknown`；建议降为观察 | 同上 |
 | X | KOL routine 报"本轮无 X 数据"；持仓复核照跑 | `source_error: x` |
 | Hindsight | 继续（Mac Mini/cloudflared 不可用时） | `memory: missing` |
-| Schwab | `position_context` 只按 IBKR 填 | `schwab: skip` |
+| Schwab | `position_context` 只按 IBKR + 手工仓填 | `schwab: skip` |
+| 手工仓文件 | 只按 IBKR + Schwab（与无手工仓时相同） | `manual_holdings: missing` |
 | watchlists | 跳过候选归类 | `watchlists: missing` |
 | DeepSeek | Bot inline 分析 | `analysis_source: bot-inline` |
 | 状态目录不可写 | 本轮内存去重 | `state: readonly` |

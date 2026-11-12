@@ -151,6 +151,13 @@ positions:
       avg_cost: 120.00
       market_price: 25.00
       market_value: 250.00
+  manual:                         # v1.0.32；来自 state/manual_holdings.json；无则 []
+    - symbol: MOS
+      broker: HSBC
+      qty: 27
+      avg_cost: 20.428
+      as_of: "2026-11-11"
+      source: "Veit chat 2026-11-11"
 watchlists:
   Favorites: [NVDA, ...]
   ETFs: [...]
@@ -158,6 +165,41 @@ watchlists:
   Nasdaq-QQQ: [QQQ, ...]
   Candidate: [] | absent  # 实测名 Candidate（旧文写 Candidates）
 ```
+
+### 2.2 财报块（可选，`symbols.<SYM>.earnings`，v1.0.31）
+
+只有 holdings 判定该仓在财报窗口内（`runbooks/holdings-review.md` §3.1）才写；
+其他票**不要**写这个键（脚本据此决定是否加载 earnings GUIDE）。所有数字带来源，缺就 `null`。
+
+```yaml
+earnings:
+  phase: preview | recap
+  report_date: "2026-11-10"          # ET
+  timing: BMO | AMC | unknown
+  quarter: "Q3 2026"
+  source_url: "https://investors.../q3-2026"   # recap=新闻稿/8-K；preview=IR 日程页
+  asof: "2026-11-11T08:31:00+08:00"
+  consensus:                          # preview 必填（可 null）；recap 可省
+    eps: 1.10
+    revenue: 1400000000
+    asof: "2026-11-09"
+    source_url: "https://..."
+  actual:   {eps: -0.20, revenue: 1300000000}      # recap：新闻稿口径（adj/GAAP 写 basis）
+  estimate: {eps: -0.25, revenue: 1400000000, asof: "2026-11-10", source_url: "https://..."}
+  eps_basis: adj | gaap
+  guidance:                           # recap；列表，每项二选一：数字区间 或 带来源的方向
+    - {item: "FY26 revenue", new_low: 5.0e9, new_high: 5.2e9, prior_low: 5.1e9, prior_high: 5.3e9}
+    - {item: "capex", direction: maintained, source_url: "https://..."}   # raised|maintained|lowered|none
+  price_reaction:                     # recap；IBKR
+    prior_close: 50.00                # 财报前最后一个 RTH 收盘
+    last: 45.00                       # IBKR 现价
+    session: post | regular | pre | overnight
+    asof: "2026-11-10T19:31:00-05:00"
+  notes: "电话会要点（来源）"
+```
+
+脚本 `computed_earnings` 只用这些字段做算术（variance、指引中点比较、反应 %、`exit_flags`），
+不补任何数字。recap 时 actual 或 estimate 缺 → 该项 null、`earnings.status` partial。
 
 ---
 
@@ -169,12 +211,15 @@ watchlists:
    ETF 另加发行商页（NAV/折溢价/费率/持仓）。只查到财务、没查到 peers → 可比法 blocked，
    目标价 null；这是允许的结果，但不能编倍数。
 4. **Schwab**：持仓与交易（只读）；缺失即 skip。
-5. **Hindsight**：按 ticker recall（见 `contracts/memory.md`）。
+5. **手工仓**：读 `state/manual_holdings.json`（无文件则跳过）；用
+   `scripts/merge_holdings.py` 与 IBKR / Schwab 合并。市值只用本轮 IBKR 现价。
+6. **Hindsight**：按 ticker recall（见 `contracts/memory.md`）。
 
 **holdings 模式没有 `social_x`**（不读 X）：不要把它当缺口，也不要在 fields_gap 里要求。
 
 **数据新鲜度**：`fundamentals_web`/`peers` 缓存同日可用，但——
 - 若该票 **3 天内出过财报** 或 **3 天内将出财报** → 必须当轮重新抓财务（不能只用旧缓存）；
+  holdings 的 recap 仓（`earnings.phase=recap`）一律当轮重抓 fundamentals/peers；
 - 缓存超过 24 小时（跨日）默认重抓；跨日复用要在卡上注明"N 日缓存"。
 
 失败处理：连接器级失败写 `source_error`；字段级缺失写 `gaps`；**不允许用记忆、

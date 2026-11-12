@@ -108,6 +108,10 @@ job 文件（Bot 写）：
   routine 取 `job.routine` → `pack.routine` → 从 `job_id` 中间段推导；**绝不用 mode 代替 routine**；
   用脚本实际开始时间命名、原子替换、写前校验是合法 JSON；`.worker.` infix 防止和
   routine 自己的 stdout 重定向撞名。**routine 不得再重定向 stdout 到 out/raw/**。
+- 财报票（v1.0.31）：每票附 `computed_earnings`（脚本确定性计算：EPS/营收 variance 与
+  beat/inline/miss、指引方向、价格反应 %、`exit_flags`），stdout 同时带 worker 的定性
+  `earnings`；没被标记的票这两个键都不出现。被标记但 worker 漏了 `earnings` → 只记 warning，
+  不判非法。result 顶层记 `earnings_phases`。
 - `computed_comps.quality`：`ok`/`wide`（cap B）、`very_wide`（cap C，不可交易）、
   `insufficient`（base >5× 或 <0.2× 现价，不可用作 target）；多 lens 按质量与 |upside| 选。
 - 长分析不回流 Bot：完整结果写 `out/current.result.json`，Bot 只在 stdout 缺字段时才读。
@@ -145,6 +149,10 @@ job 文件（Bot 写）：
 ### 缓存
 - 自动前缀缓存，无需 `cache_control`；system 固定（文件清单+顺序+内容不变）、
   job 放最后 user message；system 里没有日期/job_id/随机内容。
+- **财报附加文件（v1.0.31）**：只有 pack 里某票带 `symbols.<SYM>.earnings.phase` 时，
+  脚本才在固定清单**之后**追加 `earnings-preview` 和/或 `earnings-recap` 的 GUIDE +
+  `scripts/worker_earnings.md`（顺序固定 preview → recap → worker_earnings）。
+  没有财报票的 job，system 与 v1.0.30 逐字相同（缓存前缀不变、token 不增）。
 - 脚本记录 `system_sha256`、`prompt_sha256` 与 `cache.hit/miss`；
   命中率应随轮次升高（Flash 缓存价约未命中的 1/50）。
 

@@ -44,7 +44,7 @@
 |---|---------|----------------------|------|
 | 1 | `kol-primary` | **07:30** | 顺序跑 3 个主号（babybus → haochi → balder） |
 | 2 | `supplement` | **08:10** | 一次性读 3 个补充号 |
-| 3 | `holdings` | **08:30** | 不读 X，IBKR + Schwab 全持仓复核 |
+| 3 | `holdings` | **08:30** | 不读 X，IBKR + Schwab + 手工仓（如汇丰）全持仓复核 |
 | 4 | `daily-report` | **09:10** | 日检：终态记录/缺口/卡数/raw/FAIL 汇总 |
 
 间隔 ≥40 分钟；如果平台稳定后再考虑把主号拆回 3 条。
@@ -85,8 +85,9 @@
 使用 finance-master 技能，执行 references/runbooks/holdings-review.md。
 参数：routine_id=holdings。
 连接 IBKR（持仓/行情/watchlist 只读）+ Schwab（只读）+ Web（财报/新闻/基本面）+ Hindsight；
+另读 state/manual_holdings.json（无连接器的手工仓，如汇丰），用 scripts/merge_holdings.py 合并；
 持仓复核不需要社媒发现，因此不调用 X 读取器（不是不连 IBKR）。
-只读；不写 watchlist、不下单；嘉信只读。
+只读；不写 watchlist、不下单；嘉信只读；汇丰手工录入、不下单。routine 不得改写手工仓文件。
 ```
 
 ### 3.4 daily-report（日检）
@@ -111,6 +112,9 @@
    trigger=invalidation（价格 3/3 RTH 收盘或论点破裂）不看 target 质量；
    失效已触发但当日为 HOLD/TRIM → 必须有有效 override（active、未过期、risk_ack 完整）；
    没有 → FAIL(missing_override)；过期 → FAIL(override_expired)；
+6b) holdings 卡若有 earnings 块/`财报:` 行：用 dev/validate_card.py 的规则核对（label/exit_flags
+   与数字一致、有 source_url）；不一致 → app_failure；`override_exit_hit: true` 只在报告里
+   列为"覆盖退出条件已出现，待人工决定"，不算 FAIL；不在财报窗口的卡没有 `财报:` 行是正常的；
 7) 检查财报窗口卡：持仓在财报窗口（未来 7 天 / 发布后 3 个交易日）内的卡必须有
    `财报:` 段；数字必须有来源 URL + asof；缺来源或数字不一致 → app_failure；
    无财报窗口的票不要求该段；

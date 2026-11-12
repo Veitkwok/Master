@@ -15,7 +15,9 @@ invalidation      {price, thesis}（买入必需）
 trap_level        green|yellow|orange|red|null
 priced_in         not_priced|partial|priced|gap|null
 confidence        A|B|C
-position_context  ibkr|schwab|both|neither
+position_context  ibkr|schwab|both|hsbc|manual|multi|neither
+                 # both=仅 IBKR+Schwab；hsbc=仅汇丰；manual=仅其他手工券商；
+                 # multi=其他多券商组合。已持有 = 非 neither/unknown。
 data_gaps[]       关键缺口
 user_cash        用户本轮说出的可投现金（无则 null）
 ```

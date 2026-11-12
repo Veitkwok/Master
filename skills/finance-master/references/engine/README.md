@@ -115,7 +115,7 @@ serenity/etf/earnings 等口径句）。完整清单可用
 | ad-hoc 深研 | + `modules/deep-analysis/GUIDE.md` + 其 references（按 intent） |
 | ETF | + `modules/etf/GUIDE.md` + 对应 M1–M7（逐个，不一次全读） |
 | 卡点/评审团 | + `modules/serenity` 或 `modules/investor-panel` 对应文件 |
-| 财报 | 只读 preview 或 recap 一份 |
+| 财报 | 只读 preview 或 recap 一份；holdings routine 由 job 的 `earnings.phase` 触发，worker 脚本自动追加（v1.0.31，引擎文件未改） |
 | 期权/SaaS/创业/宏观 | 只读对应单模块 GUIDE |
 
 禁止：整库加载、一次读多个方法库卡片、读 README/evals/examples。

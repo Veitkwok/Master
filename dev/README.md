@@ -9,6 +9,8 @@
 | `tests/test_cards.py` | 建议卡金样/反例（12 例） |
 | `tests/test_jobcheck.py` | 估值输入闸门（exit 8）测试 |
 | `tests/test_comps.py` | 确定性可比回退（computed_comps）测试 |
+| `tests/test_holdings_merge.py` | 手工券商仓（汇丰）合并、加权成本、集中度、context 校验（42 例） |
+| `tests/test_earnings.py` | 财报 preview/recap：按需加载 GUIDE、computed_earnings、带/不带 earnings 的卡校验 |
 | `samples/` | 数据包 / job / 建议卡样例（可跑 validate_card） |
 | `research/deepseek-integration.md` | DeepSeek 接入方案与实测清单 |
 | `publish-to-github.sh` | 从 monorepo 发布本包到 GitHub 分发仓库 |
@@ -22,6 +24,8 @@ python3 dev/check_pack.py
 python3 dev/tests/test_cards.py
 python3 dev/tests/test_jobcheck.py
 python3 dev/tests/test_comps.py
+python3 dev/tests/test_holdings_merge.py
+python3 dev/tests/test_earnings.py
 python3 dev/validate_card.py dev/samples/advice-card.sample.json
 python3 skills/finance-master/scripts/deepseek_analyze.py --selftest
 ```

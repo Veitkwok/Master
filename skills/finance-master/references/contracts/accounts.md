@@ -60,7 +60,8 @@
 - 14 日内 **≥2 次提及 且 ≥2 个账号**；
 - 或 14 日内**单账号 ≥3 次**；
 - 且 `conviction_hint != none`（原句至少有一个方向）；
-- 且该票**当前未持有**（`position_context=neither`）。已持仓的票不进 Candidate；
+- 且该票**当前未持有**（`position_context=neither`）。已持仓的票不进 Candidate
+  （含仅在 `state/manual_holdings.json` 出现的手工仓，如汇丰的 AVGO）；
   只在建议卡/持仓复核里出现（用户明确要跟踪加仓时除外）。
 
 输出格式与"只提议、确认后写"的流程见 `contracts/advice-card.md` §6。

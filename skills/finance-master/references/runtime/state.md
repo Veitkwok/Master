@@ -16,6 +16,7 @@
 │   ├── advice/YYYY-MM.jsonl          # 建议卡/override 归档（逐行 JSON，type=card|override）
 │   ├── pending_candidates.json       # 待用户确认的 Candidate
 │   ├── pending_retains.json          # 记忆写入失败队列（Hindsight 恢复后补写）
+│   ├── manual_holdings.json          # 手工券商仓（如汇丰；无连接器，用户当面告知）
 │   ├── watchlists/YYYY-MM-DD.json    # 四张表快照（只读采集）
 │   ├── peers/YYYY-MM-DD.json         # 当轮采到的同业倍数（同日复用）
 │   ├── fundamentals/YYYY-MM-DD.json  # 当轮采到的财务/股数/净债（同日复用）
@@ -122,6 +123,36 @@
 {"NVDA": {"first_seen": "2026-10-20", "mentions_14d": 3, "accounts_14d": 2,
            "conviction": "high", "proposed_on": ["2026-10-23"], "confirmed": false}}
 ```
+
+### `manual_holdings.json`（v1.0.32）
+
+无连接器的券商仓（如汇丰）。技能更新不丢（在 `state/`，不进 git）。
+**routine 只读**；只在用户当面告知买卖后，由对话里的 Bot 更新。
+
+```json
+{
+  "schema": "master.manual_holdings/v1",
+  "updated_at": "2026-11-11T13:30:00+08:00",
+  "positions": [
+    {
+      "broker": "HSBC",
+      "symbol": "MOS",
+      "shares": 27,
+      "avg_cost": 20.428,
+      "currency": "USD",
+      "as_of": "2026-11-11",
+      "source": "Veit chat 2026-11-11"
+    }
+  ]
+}
+```
+
+- `broker` 必填，**不得**写成 IBKR / Schwab（那两家走连接器，写进来会重复计数）。
+- `shares` / `avg_cost` 必须为正；`as_of` 为用户确认日（YYYY-MM-DD）；`source` 必填。
+- 同一 `broker` + `symbol` 只能有一条。
+- 持仓复核用 `scripts/merge_holdings.py` 与 IBKR / Schwab 合并；市值用本轮 IBKR 现价。
+- `as_of` 距运行日超过 30 个自然日 → 缺口 `manual_holdings.stale`，提醒用户确认是否仍持有；不改数量。
+- 文件不存在 = 本轮无手工仓，不是错误。示意见仓库 `dev/samples/manual_holdings.sample.json`。
 
 ### `watchlists/YYYY-MM-DD.json`
 

@@ -19,6 +19,10 @@ STANCES = {"BUY", "ADD", "HOLD", "TRIM", "SELL", "AVOID", "WATCH"}
 TRAP = {"green", "yellow", "orange", "red"}
 PRICED = {"not_priced", "partial", "priced", "gap"}
 SOURCES = {"deepseek", "bot-inline", "mixed"}
+HELD_CONTEXTS = {"ibkr", "schwab", "both", "hsbc", "manual", "multi"}
+EARN_PHASES = {"preview", "recap"}
+EARN_LABELS = {"beat", "inline", "miss"}
+GUIDE_DIRS = {"raised", "maintained", "lowered", "none"}
 
 
 def _num(x) -> bool:
@@ -54,7 +58,7 @@ def validate(c: dict) -> list[str]:
         e.append(f"analysis_source invalid: {c.get('analysis_source')}")
 
     pos = c.get("position") or {}
-    if pos.get("context") not in {"ibkr", "schwab", "both", "neither", "unknown"}:
+    if pos.get("context") not in HELD_CONTEXTS | {"neither", "unknown"}:
         e.append("position.context invalid")
 
     risk = c.get("risk") or {}
@@ -103,7 +107,7 @@ def validate(c: dict) -> list[str]:
     if stance in {"TRIM", "SELL"}:
         if not any(x in c for x in ("target", "sell_plan")) and not sp.get("invalidation_price"):
             e.append("TRIM/SELL needs a trigger (target or invalidation)")
-        if not c.get("position", {}).get("context") in {"ibkr", "schwab", "both"}:
+        if not c.get("position", {}).get("context") in HELD_CONTEXTS:
             e.append("TRIM/SELL requires a held position")
 
     if stance == "AVOID" and trap not in {"orange", "red"} and not risk.get("avoid_reason"):
@@ -111,6 +115,78 @@ def validate(c: dict) -> list[str]:
 
     if not (c.get("target") or {}).get("basis") and stance in {"BUY", "ADD"}:
         e.append("BUY/ADD requires target.basis")
+
+    if "earnings" in c and c["earnings"] is not None:
+        e.extend(validate_earnings(c["earnings"]))
+    return e
+
+
+def validate_earnings(er) -> list[str]:
+    """Optional card.earnings block (holdings earnings window, v1.0.31).
+
+    Evidence only: it never changes stance gates. Checks shape, sourcing,
+    and that labels/flags agree with the numbers on the card.
+    """
+    e: list[str] = []
+    if not isinstance(er, dict):
+        return ["earnings must be an object"]
+    phase = er.get("phase")
+    if phase not in EARN_PHASES:
+        e.append(f"earnings.phase invalid: {phase}")
+        return e
+    if not er.get("report_date"):
+        e.append("earnings.report_date required")
+    if not er.get("source_url"):
+        e.append("earnings.source_url required (numbers must be sourced)")
+    if er.get("timing") not in (None, "BMO", "AMC", "unknown"):
+        e.append(f"earnings.timing invalid: {er.get('timing')}")
+    if phase == "preview":
+        for k in ("eps", "revenue", "guidance_direction", "exit_flags"):
+            if er.get(k) not in (None, {}, []):
+                e.append(f"earnings.{k} not allowed on preview (no print yet)")
+        return e
+    labels = {}
+    for k in ("eps", "revenue"):
+        m = er.get(k)
+        if m is None:
+            continue
+        if not isinstance(m, dict):
+            e.append(f"earnings.{k} must be an object")
+            continue
+        a, b, lab = m.get("actual"), m.get("estimate"), m.get("label")
+        if lab not in EARN_LABELS:
+            e.append(f"earnings.{k}.label invalid: {lab}")
+            continue
+        if _num(a) and _num(b):
+            # tolerance-aware labels: beat/miss beyond tolerance, inline within it;
+            # a technical_miss means actual<estimate but inside tolerance.
+            tm = m.get("technical_miss")
+            if tm is not None and not isinstance(tm, bool):
+                e.append(f"earnings.{k}.technical_miss must be boolean")
+            elif lab == "beat" and a < b:
+                e.append(f"earnings.{k}.label beat but actual < estimate")
+            elif lab == "miss" and a > b:
+                e.append(f"earnings.{k}.label miss but actual > estimate")
+            elif lab == "inline" and not (a >= b or tm is True):
+                e.append(f"earnings.{k}.label inline but actual < estimate (technical_miss missing)")
+        else:
+            e.append(f"earnings.{k} needs numeric actual and estimate")
+        labels[k] = lab
+    gd = er.get("guidance_direction")
+    if gd is not None and gd not in GUIDE_DIRS:
+        e.append(f"earnings.guidance_direction invalid: {gd}")
+    flags = er.get("exit_flags") or {}
+    if not isinstance(flags, dict):
+        return e + ["earnings.exit_flags must be an object"]
+    pairs = (("eps_miss", labels.get("eps") == "miss" if "eps" in labels else None),
+             ("revenue_miss", labels.get("revenue") == "miss" if "revenue" in labels else None),
+             ("guide_lowered", gd == "lowered" if gd is not None else None))
+    for key, want in pairs:
+        got = flags.get(key)
+        if want is not None and got is not want:
+            e.append(f"earnings.exit_flags.{key} must be {want}")
+    if er.get("override_exit_hit") is True and not er.get("override_note"):
+        e.append("earnings.override_exit_hit requires override_note (state it plainly)")
     return e
 
 
