@@ -108,6 +108,9 @@
    补跑成功 → 该条标 retried_ok，整体不算 FAIL；补跑仍失败 → 列 FAIL(platform)；
 5) 检查 out/raw 的 *.worker.stdout.json 都是合法 JSON；
 6) 检查卡数 = retained_cases + pending_retains；卡片有 运行:/证据/目标质量/集中度/接近失效；
+   检查记忆真实性：`connector_map.hindsight_write` 必须是 `syncRetain_verified` 或 `failed_queued`；
+   若写 `ok`/`syncRetain ok` 但 `retained_cases` 为空/`get_document` 查不到 → app_failure；
+   缺的 case 按 memory.md 补写进 pending_retains（自动修复，但不掩盖本次 FAIL）；
    检查 SELL/TRIM 的触发源：trigger=target 才要求 target 质量 ≥B；
    trigger=invalidation（价格 3/3 RTH 收盘或论点破裂）不看 target 质量；
    失效已触发但当日为 HOLD/TRIM → 必须有有效 override（active、未过期、risk_ack 完整）；

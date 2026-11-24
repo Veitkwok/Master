@@ -103,6 +103,21 @@ result_note: "可选，不带保证收益话术"
    `state/runs/YYYY-MM-DD-backfill.json`；
 5. 只补 case，不补 POSTMORTEM（POSTMORTEM 仍等用户给结果）。
 
+### 写入验证（v1.0.34 起，必须做）
+
+`sync_retain` 返回成功 **不等于** 文档已可读。每张卡必须按下面三步：
+
+1. `sync_retain(document_id, case)`；
+2. **回读验证**：`get_document(document_id)`；最多 2 次、间隔约 2 秒；
+   - 查到 → 计入 `retained_cases[]`，`connector_map.hindsight_write = "syncRetain_verified"`；
+   - 查不到 → 把 case 原文写入 `state/pending_retains.json`，`connector_map.hindsight_write = "failed_queued"`，
+     **不得**写 `retained_cases`，也不得声称成功；
+3. run 记录必须始终有 `retained_cases`（数组，可为空）和 `pending_retains`（整数）；
+   只要有卡，`retained_cases + pending_retains` 必须等于卡数，否则本 run 记 `app_failure`。
+
+**失败判定**：`connector_map.hindsight_write` 写 `ok`/`syncRetain ok` 但 `get_document` 查不到，
+属于**虚假成功**，日检直接 FAIL，不能当作 partial 或记忆降级。
+
 ### 写入失败与补写队列（v1.0.24 起）
 
 - `sync_retain` 失败（Cloudflare 1033/530、401、超时等）→ 把 case 原文写入

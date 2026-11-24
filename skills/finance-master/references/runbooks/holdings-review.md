@@ -23,7 +23,8 @@
 ## 1. 准备
 
 0. **S0 第一件事**：在 `state/runs/YYYY-MM-DD.json` 追加 running 记录（先留痕再采集）；
-   随后 flush `state/pending_retains.json`（Hindsight 恢复后补写失败 case）。
+   随后 flush `state/pending_retains.json`（Hindsight 恢复后补写失败 case）；
+   每张新卡 `sync_retain` 后必须 `get_document` 回读，查不到 → 入队 + `failed_queued`。
 1. S0 能力探测（重点 IBKR、Schwab、Hindsight、state、DeepSeek）；
    并检查 `state/manual_holdings.json` 是否存在、as_of 是否超过 30 天。
 2. 读 `state/runs`：今天是否已跑过 holdings？已跑过且用户未要求重跑 → 退出（幂等）。

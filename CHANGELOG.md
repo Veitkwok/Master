@@ -1,5 +1,16 @@
 # CHANGELOG · Master pack
 
+## 1.0.34 — 2026-11-24（记忆虚假成功修复）
+
+- 2026-11-21 babybus 出 SPCX/QQQ 两卡，run 记录写 `syncRetain ok`，实际
+  `case-SPCX-20261121`/`case-QQQ-20261121` 不存在，`pending_retains` 为空。
+- 根因：`sync_retain` 返回成功被当作"已写入"，没有 `get_document` 回读验证，也没有入队。
+- 修复：每张卡写入后必须 `get_document` 回读（最多 2 次/间隔 2s）；查不到 → 进
+  `pending_retains` 并写 `failed_queued`，禁止写 `retained_cases`/`syncRetain ok`；
+  有卡时 `retained_cases + pending_retains` 必须等于卡数，否则 `app_failure`。
+- 日检增加"记忆真实性"检查；缺失 case 自动入队补写，但本次仍记 FAIL。
+- runbook/state/delivery 同步；QQQ 卡补 `目标质量:` 行为已知小问题（下轮格式修复）。
+
 ## 1.0.33 — 2026-11-12（合并 Bot 本地 v1.0.31 + v1.0.32；canonical 对账版）
 
 - **导入 Bot 本地实现**：v1.0.31（7ab4d60）财报 preview/recap + v1.0.32（3c3dae8）

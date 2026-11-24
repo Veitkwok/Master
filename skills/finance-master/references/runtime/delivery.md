@@ -51,6 +51,8 @@ Candidate 提议: NVDA 14日3次/2账号/high → 回复确认后写入
   target 被 very_wide 限住时另起一行 `目标质量: very_wide（cap C，仅参考，不交易）`。
 - **SELL/TRIM 必须写 `触发:`**：`触发: 失效（连续 3 日 RTH 收盘 < X）` 或
   `触发: 目标（quality ok，B）`；失效触发的卖出**不受 target 质量限制**。
+- **记忆写入**：每张卡 `sync_retain` 后必须 `get_document` 回读；查不到就进
+  `pending_retains` 并写 `failed_queued`，不得写 `syncRetain ok`。
 - 状态定义：`succeeded` = 本轮计划的输出都完整（无 target null 因缺数据、无关键 connector down）；
   Hindsight down 但 case 已入 `pending_retains` 队列 → `partial`，原因写 `memory: queued N`；
   `partial` = 跑完但至少一张卡 target/字段缺失或 connector down；`failed` = run 中止。
